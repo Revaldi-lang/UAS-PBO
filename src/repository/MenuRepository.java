@@ -16,7 +16,7 @@ public class MenuRepository {
 
     public List<MenuItem> getAllMenuItems() {
         List<MenuItem> items = new ArrayList<>();
-        String query = "SELECT * FROM menu_items;";
+        String query = "SELECT * FROM menu_items WHERE is_deleted = 0;";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query);
              ResultSet rs = pstmt.executeQuery()) {
@@ -79,7 +79,7 @@ public class MenuRepository {
     }
 
     public boolean deleteMenuItem(int id) {
-        String delete = "DELETE FROM menu_items WHERE id = ?;";
+        String delete = "UPDATE menu_items SET is_deleted = 1 WHERE id = ?;";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(delete)) {
             
@@ -87,7 +87,7 @@ public class MenuRepository {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Error delete menu item: " + e.getMessage());
+            System.err.println("Error soft deleting menu item: " + e.getMessage());
             return false;
         }
     }

@@ -15,7 +15,11 @@ public class DatabaseConfig {
             System.err.println("SQLite JDBC Driver tidak ditemukan!");
             e.printStackTrace();
         }
-        return DriverManager.getConnection(DB_URL);
+        Connection conn = DriverManager.getConnection(DB_URL);
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("PRAGMA foreign_keys = ON;");
+        }
+        return conn;
     }
 
     public static void initializeDatabase() {
@@ -36,9 +40,17 @@ public class DatabaseConfig {
                     + "name TEXT NOT NULL,"
                     + "price REAL NOT NULL,"
                     + "category TEXT NOT NULL," // FOOD or BEVERAGE
-                    + "detail TEXT" // spiciness (food) or size/ice (beverage)
+                    + "detail TEXT," // spiciness (food) or size/ice (beverage)
+                    + "is_deleted INTEGER DEFAULT 0"
                     + ");";
             stmt.execute(createMenuItemsTable);
+
+            // Jalankan migrasi kolom is_deleted jika database lama sudah terbentuk
+            try {
+                stmt.execute("ALTER TABLE menu_items ADD COLUMN is_deleted INTEGER DEFAULT 0;");
+            } catch (SQLException e) {
+                // Kolom mungkin sudah ada, abaikan error
+            }
 
             // 3. Buat Tabel Orders
             String createOrdersTable = "CREATE TABLE IF NOT EXISTS orders ("
