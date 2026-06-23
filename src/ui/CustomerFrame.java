@@ -77,7 +77,7 @@ public class CustomerFrame extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Food Order System");
+        setTitle("Warung Om Budi");
         setSize(1000, 640);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -95,7 +95,7 @@ public class CustomerFrame extends JFrame {
 
         JPanel titleGroup = new JPanel(new GridLayout(2, 1, 0, 2));
         titleGroup.setOpaque(false);
-        JLabel lblTitle = new JLabel("Food Order System");
+        JLabel lblTitle = new JLabel("Warung Om Budi");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblTitle.setForeground(TEXT_DARK);
         JLabel lblUser = new JLabel(customer.getWelcomeMessage());

@@ -7,6 +7,6 @@ public class Customer extends User {
 
     @Override
     public String getWelcomeMessage() {
-        return "Halo Pelanggan Setia " + getUsername() + "! Selamat datang di Food Ordering System. Selamat memesan makanan favorit Anda!";
+        return "Halo Pelanggan Setia " + getUsername() + "! Selamat datang di Warung Om Budi. Selamat memesan makanan favorit Anda!";
     }
 }

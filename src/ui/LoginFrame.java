@@ -34,7 +34,7 @@ public class LoginFrame extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Food Ordering System");
+        setTitle("Warung Om Budi");
         setSize(400, 480);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -54,7 +54,7 @@ public class LoginFrame extends JFrame {
         ));
 
         // Title
-        JLabel lblTitle = new JLabel("Food Order System");
+        JLabel lblTitle = new JLabel("Warung Om Budi");
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setForeground(TEXT_DARK);
