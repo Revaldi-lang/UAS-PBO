@@ -1,6 +1,5 @@
 package ui;
 
-import model.Customer;
 import model.MenuItem;
 import model.Order;
 import model.OrderItem;
@@ -13,10 +12,10 @@ import repository.OrderRepository;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,44 +24,48 @@ public class CustomerFrame extends JFrame {
     private MenuRepository menuRepository;
     private OrderRepository orderRepository;
 
-    // Cart list
     private List<OrderItem> cartList;
     private double totalCartPrice = 0.0;
 
     private JTabbedPane tabbedPane;
 
-    // Browse Menu Components
     private JTable tblMenu;
     private DefaultTableModel menuModel;
     private JComboBox<String> cbFilterCategory;
     private JSpinner spinQty;
     private JButton btnAddToCart;
 
-    // Cart Components
     private JTable tblCart;
     private DefaultTableModel cartModel;
     private JLabel lblTotal;
     private JButton btnRemoveItem;
     private JComboBox<String> cbPaymentMethod;
-    
-    // Payment detail panels (to be swapped)
+
     private JPanel cardPanel;
     private CardLayout cardLayout;
-    private JPanel pnlCash, pnlEWallet;
-    
-    // Cash inputs
     private JTextField txtCashAmount;
-    
-    // E-Wallet inputs
     private JComboBox<String> cbWalletProvider;
     private JTextField txtPhoneNumber;
-
     private JButton btnCheckout;
 
-    // History Components
     private JTable tblHistory;
     private DefaultTableModel historyModel;
     private JButton btnRefreshHistory;
+
+    // Colors
+    private static final Color ACCENT      = new Color(79, 70, 229);
+    private static final Color ACCENT_HOVER = new Color(67, 56, 202);
+    private static final Color BG          = new Color(249, 250, 251);
+    private static final Color TEXT_DARK   = new Color(17, 24, 39);
+    private static final Color TEXT_MUTED  = new Color(107, 114, 128);
+    private static final Color BORDER      = new Color(229, 231, 235);
+    private static final Color SUCCESS     = new Color(5, 150, 105);
+    private static final Color SUCCESS_H   = new Color(4, 120, 87);
+    private static final Color DANGER      = new Color(220, 38, 38);
+    private static final Color DANGER_H    = new Color(185, 28, 28);
+    private static final Color NEUTRAL     = new Color(107, 114, 128);
+    private static final Color NEUTRAL_H   = new Color(75, 85, 99);
+    private static final Color WARNING     = new Color(217, 119, 6);
 
     public CustomerFrame(User customer) {
         this.customer = customer;
@@ -73,295 +76,318 @@ public class CustomerFrame extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Customer Portal - Food Ordering System");
-        setSize(950, 650);
+        setTitle("Food Order System");
+        setSize(1000, 640);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Main Panel
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(245, 246, 248));
+        JPanel main = new JPanel(new BorderLayout());
+        main.setBackground(BG);
 
-        // Header Panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(230, 74, 25)); // Customer Coral Orange Accent
-        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
+        // Header
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER),
+                new EmptyBorder(14, 24, 14, 24)
+        ));
 
-        JLabel lblTitle = new JLabel("FOOD ORDER SYSTEM");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitle.setForeground(Color.WHITE);
+        JPanel titleGroup = new JPanel(new GridLayout(2, 1, 0, 2));
+        titleGroup.setOpaque(false);
+        JLabel lblTitle = new JLabel("Food Order System");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblTitle.setForeground(TEXT_DARK);
+        JLabel lblUser = new JLabel(customer.getWelcomeMessage());
+        lblUser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblUser.setForeground(TEXT_MUTED);
+        titleGroup.add(lblTitle);
+        titleGroup.add(lblUser);
+        header.add(titleGroup, BorderLayout.WEST);
 
-        JLabel lblWelcome = new JLabel(customer.getWelcomeMessage());
-        lblWelcome.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblWelcome.setForeground(new Color(254, 240, 235));
+        JButton btnLogout = flatButton("Logout", DANGER, DANGER_H);
+        btnLogout.setPreferredSize(new Dimension(85, 34));
+        btnLogout.addActionListener(e -> { dispose(); new LoginFrame().setVisible(true); });
+        JPanel rp = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        rp.setOpaque(false);
+        rp.add(btnLogout);
+        header.add(rp, BorderLayout.EAST);
 
-        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 2));
-        titlePanel.setOpaque(false);
-        titlePanel.add(lblTitle);
-        titlePanel.add(lblWelcome);
+        main.add(header, BorderLayout.NORTH);
 
-        JButton btnLogout = new JButton("Logout");
-        btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnLogout.setBackground(new Color(220, 53, 69)); // Danger Red
-        btnLogout.setForeground(Color.WHITE);
-        btnLogout.setFocusPainted(false);
-        btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnLogout.addActionListener(e -> {
-            this.dispose();
-            new LoginFrame().setVisible(true);
-        });
-
-        headerPanel.add(titlePanel, BorderLayout.WEST);
-        headerPanel.add(btnLogout, BorderLayout.EAST);
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-
-        // Tabbed Pane
+        // Tabs
         tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
         createBrowseTab();
         createCartTab();
         createHistoryTab();
+        main.add(tabbedPane, BorderLayout.CENTER);
 
-        mainPanel.add(tabbedPane, BorderLayout.CENTER);
-        add(mainPanel);
-
-        // Load data
+        add(main);
         loadMenuData("Semua");
         loadHistoryData();
     }
 
     private void createBrowseTab() {
-        JPanel browsePanel = new JPanel(new BorderLayout(15, 15));
-        browsePanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        browsePanel.setBackground(Color.WHITE);
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        panel.setBackground(BG);
 
-        // Top Filter Bar
-        JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+        // Filter bar
+        JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         filterBar.setOpaque(false);
-        filterBar.add(new JLabel("Kategori:"));
+        filterBar.add(fieldLabel("Kategori:"));
         cbFilterCategory = new JComboBox<>(new String[]{"Semua", "FOOD", "BEVERAGE"});
-        cbFilterCategory.setPreferredSize(new Dimension(120, 28));
+        cbFilterCategory.setPreferredSize(new Dimension(130, 32));
         filterBar.add(cbFilterCategory);
+        panel.add(filterBar, BorderLayout.NORTH);
 
-        browsePanel.add(filterBar, BorderLayout.NORTH);
-
-        // Menu Table
-        String[] columns = {"ID", "Nama Menu", "Harga", "Kategori", "Detail"};
-        menuModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        // Table card
+        JPanel tableCard = wrapCard(new BorderLayout());
+        String[] cols = {"ID", "Nama Menu", "Harga", "Kategori", "Detail"};
+        menuModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tblMenu = new JTable(menuModel);
-        tblMenu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblMenu.setRowHeight(28);
-        JScrollPane scrollPane = new JScrollPane(tblMenu);
-        browsePanel.add(scrollPane, BorderLayout.CENTER);
+        styleTable(tblMenu);
+        tblMenu.getColumnModel().getColumn(0).setPreferredWidth(40);
+        tblMenu.getColumnModel().getColumn(0).setMaxWidth(60);
+        tableCard.add(new JScrollPane(tblMenu), BorderLayout.CENTER);
+        panel.add(tableCard, BorderLayout.CENTER);
 
-        // Bottom Order Action bar
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
-        actionPanel.setOpaque(false);
-        actionPanel.add(new JLabel("Jumlah Porsi/Gelas:"));
+        // Action bar
+        JPanel actionBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+        actionBar.setOpaque(false);
+        actionBar.add(fieldLabel("Jumlah:"));
         spinQty = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
-        spinQty.setPreferredSize(new Dimension(65, 28));
-        actionPanel.add(spinQty);
+        spinQty.setPreferredSize(new Dimension(65, 32));
+        actionBar.add(spinQty);
+        btnAddToCart = flatButton("Tambah ke Keranjang", SUCCESS, SUCCESS_H);
+        btnAddToCart.setPreferredSize(new Dimension(190, 34));
+        actionBar.add(btnAddToCart);
+        panel.add(actionBar, BorderLayout.SOUTH);
 
-        btnAddToCart = new JButton("Masukkan ke Keranjang");
-        btnAddToCart.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnAddToCart.setBackground(new Color(40, 167, 69)); // Success Green
-        btnAddToCart.setForeground(Color.WHITE);
-        btnAddToCart.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnAddToCart.setFocusPainted(false);
-        actionPanel.add(btnAddToCart);
+        tabbedPane.addTab("Menu", panel);
 
-        browsePanel.add(actionPanel, BorderLayout.SOUTH);
-
-        tabbedPane.addTab("Cari & Pesan Menu", browsePanel);
-
-        // Events
         cbFilterCategory.addActionListener(e -> loadMenuData(cbFilterCategory.getSelectedItem().toString()));
         btnAddToCart.addActionListener(e -> handleAddToCart());
     }
 
     private void createCartTab() {
-        JPanel cartPanel = new JPanel(new BorderLayout(15, 15));
-        cartPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        cartPanel.setBackground(Color.WHITE);
+        JPanel panel = new JPanel(new BorderLayout(16, 0));
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        panel.setBackground(BG);
 
-        // Left side: Table representing current cart
-        JPanel tableContainer = new JPanel(new BorderLayout(0, 10));
-        tableContainer.setOpaque(false);
-
-        String[] columns = {"Nama Menu", "Harga", "Kuantitas", "Subtotal"};
-        cartModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        // Left: cart table
+        JPanel tableCard = wrapCard(new BorderLayout(0, 10));
+        String[] cols = {"Nama Menu", "Harga", "Qty", "Subtotal"};
+        cartModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tblCart = new JTable(cartModel);
-        tblCart.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblCart.setRowHeight(28);
-        JScrollPane scrollCart = new JScrollPane(tblCart);
-        tableContainer.add(scrollCart, BorderLayout.CENTER);
+        styleTable(tblCart);
+        DefaultTableCellRenderer centerR = new DefaultTableCellRenderer();
+        centerR.setHorizontalAlignment(JLabel.CENTER);
+        tblCart.getColumnModel().getColumn(2).setCellRenderer(centerR);
+        tableCard.add(new JScrollPane(tblCart), BorderLayout.CENTER);
 
-        // Remove item button
-        btnRemoveItem = new JButton("Hapus Item Terpilih");
-        btnRemoveItem.setBackground(new Color(220, 53, 69)); // Danger Red
-        btnRemoveItem.setForeground(Color.WHITE);
-        btnRemoveItem.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnRemoveItem.setFocusPainted(false);
-        btnRemoveItem.setPreferredSize(new Dimension(0, 32));
-        tableContainer.add(btnRemoveItem, BorderLayout.SOUTH);
+        btnRemoveItem = flatButton("Hapus Item", DANGER, DANGER_H);
+        btnRemoveItem.setPreferredSize(new Dimension(130, 34));
+        JPanel removeWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        removeWrap.setOpaque(false);
+        removeWrap.add(btnRemoveItem);
+        tableCard.add(removeWrap, BorderLayout.SOUTH);
 
-        cartPanel.add(tableContainer, BorderLayout.CENTER);
+        panel.add(tableCard, BorderLayout.CENTER);
 
-        // Right side: Checkout Summary & Payment options
-        JPanel summaryPanel = new JPanel(new GridBagLayout());
-        summaryPanel.setBackground(new Color(248, 249, 250));
-        summaryPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(15, 15, 15, 15)
-        ));
-        summaryPanel.setPreferredSize(new Dimension(350, 0));
+        // Right: checkout summary
+        JPanel summaryCard = wrapCard(new GridBagLayout());
+        summaryCard.setPreferredSize(new Dimension(300, 0));
+        GridBagConstraints g = new GridBagConstraints();
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.weightx = 1.0; g.gridx = 0;
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.weightx = 1.0;
+        g.gridy = 0; g.insets = new Insets(0, 0, 16, 0);
+        JLabel sumTitle = new JLabel("Ringkasan Pembayaran");
+        sumTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        sumTitle.setForeground(TEXT_DARK);
+        summaryCard.add(sumTitle, g);
 
-        // Total Label
-        JLabel lblSummaryTitle = new JLabel("Ringkasan Belanja");
-        lblSummaryTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        summaryPanel.add(lblSummaryTitle, gbc);
-        gbc.gridwidth = 1;
+        // Total
+        g.gridy = 1; g.insets = new Insets(0, 0, 4, 0);
+        summaryCard.add(fieldLabel("Total Harga"), g);
+        lblTotal = new JLabel("Rp 0");
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTotal.setForeground(ACCENT);
+        g.gridy = 2; g.insets = new Insets(0, 0, 20, 0);
+        summaryCard.add(lblTotal, g);
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        summaryPanel.add(new JLabel("Total Harga:"), gbc);
-        lblTotal = new JLabel("Rp0", JLabel.RIGHT);
-        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTotal.setForeground(new Color(230, 74, 25)); // Orange Accent
-        gbc.gridx = 1;
-        summaryPanel.add(lblTotal, gbc);
+        // Separator
+        JSeparator sep = new JSeparator();
+        sep.setForeground(BORDER);
+        g.gridy = 3; g.insets = new Insets(0, 0, 16, 0);
+        summaryCard.add(sep, g);
 
-        // Payment Method Choice
-        gbc.gridx = 0; gbc.gridy = 2;
-        summaryPanel.add(new JLabel("Metode Bayar:"), gbc);
+        // Payment method
+        g.gridy = 4; g.insets = new Insets(0, 0, 4, 0);
+        summaryCard.add(fieldLabel("Metode Bayar"), g);
         cbPaymentMethod = new JComboBox<>(new String[]{"CASH", "E-WALLET"});
-        cbPaymentMethod.setPreferredSize(new Dimension(0, 30));
-        gbc.gridx = 1;
-        summaryPanel.add(cbPaymentMethod, gbc);
+        cbPaymentMethod.setPreferredSize(new Dimension(0, 34));
+        g.gridy = 5; g.insets = new Insets(0, 0, 14, 0);
+        summaryCard.add(cbPaymentMethod, g);
 
-        // Card Panel for dynamic payment input
+        // Dynamic payment input
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
         cardPanel.setOpaque(false);
 
-        // Cash payment detail panel
-        pnlCash = new JPanel(new GridLayout(2, 1, 0, 5));
+        JPanel pnlCash = new JPanel(new GridBagLayout());
         pnlCash.setOpaque(false);
-        pnlCash.add(new JLabel("Uang Tunai Diterima (Rp):"));
+        GridBagConstraints cg = new GridBagConstraints();
+        cg.fill = GridBagConstraints.HORIZONTAL; cg.weightx = 1.0; cg.gridx = 0;
+        cg.gridy = 0; cg.insets = new Insets(0, 0, 4, 0);
+        pnlCash.add(fieldLabel("Uang Tunai (Rp)"), cg);
         txtCashAmount = new JTextField();
-        txtCashAmount.setPreferredSize(new Dimension(0, 30));
-        txtCashAmount.putClientProperty("JTextField.placeholderText", "Masukkan nominal uang");
-        pnlCash.add(txtCashAmount);
+        txtCashAmount.setPreferredSize(new Dimension(0, 34));
+        txtCashAmount.putClientProperty("JTextField.placeholderText", "Masukkan nominal");
+        cg.gridy = 1; cg.insets = new Insets(0, 0, 0, 0);
+        pnlCash.add(txtCashAmount, cg);
 
-        // E-Wallet payment detail panel
-        pnlEWallet = new JPanel(new GridLayout(4, 1, 0, 5));
+        JPanel pnlEWallet = new JPanel(new GridBagLayout());
         pnlEWallet.setOpaque(false);
-        pnlEWallet.add(new JLabel("Pilih Provider E-Wallet:"));
+        GridBagConstraints eg = new GridBagConstraints();
+        eg.fill = GridBagConstraints.HORIZONTAL; eg.weightx = 1.0; eg.gridx = 0;
+        eg.gridy = 0; eg.insets = new Insets(0, 0, 4, 0);
+        pnlEWallet.add(fieldLabel("Provider"), eg);
         cbWalletProvider = new JComboBox<>(new String[]{"GoPay", "OVO", "Dana", "LinkAja"});
-        cbWalletProvider.setPreferredSize(new Dimension(0, 30));
-        pnlEWallet.add(cbWalletProvider);
-        pnlEWallet.add(new JLabel("No. Handphone:"));
+        cbWalletProvider.setPreferredSize(new Dimension(0, 34));
+        eg.gridy = 1; eg.insets = new Insets(0, 0, 12, 0);
+        pnlEWallet.add(cbWalletProvider, eg);
+        eg.gridy = 2; eg.insets = new Insets(0, 0, 4, 0);
+        pnlEWallet.add(fieldLabel("No. Handphone"), eg);
         txtPhoneNumber = new JTextField();
-        txtPhoneNumber.setPreferredSize(new Dimension(0, 30));
-        txtPhoneNumber.putClientProperty("JTextField.placeholderText", "Contoh: 08123456789");
-        pnlEWallet.add(txtPhoneNumber);
+        txtPhoneNumber.setPreferredSize(new Dimension(0, 34));
+        txtPhoneNumber.putClientProperty("JTextField.placeholderText", "08123456789");
+        eg.gridy = 3; eg.insets = new Insets(0, 0, 0, 0);
+        pnlEWallet.add(txtPhoneNumber, eg);
 
         cardPanel.add(pnlCash, "CASH");
         cardPanel.add(pnlEWallet, "E-WALLET");
 
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
-        gbc.weighty = 0.5;
-        summaryPanel.add(cardPanel, gbc);
-        gbc.weighty = 0.0;
+        g.gridy = 6; g.insets = new Insets(0, 0, 20, 0);
+        summaryCard.add(cardPanel, g);
 
-        // Place order button
-        btnCheckout = new JButton("Bayar & Proses Pesanan");
-        btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnCheckout.setBackground(new Color(40, 167, 69)); // Success Green
-        btnCheckout.setForeground(Color.WHITE);
-        btnCheckout.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCheckout.setFocusPainted(false);
-        btnCheckout.setPreferredSize(new Dimension(0, 40));
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
-        gbc.insets = new Insets(15, 8, 8, 8);
-        summaryPanel.add(btnCheckout, gbc);
+        // Checkout button
+        btnCheckout = flatButton("Bayar Sekarang", ACCENT, ACCENT_HOVER);
+        btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnCheckout.setPreferredSize(new Dimension(0, 42));
+        g.gridy = 7; g.insets = new Insets(0, 0, 0, 0);
+        summaryCard.add(btnCheckout, g);
 
-        cartPanel.add(summaryPanel, BorderLayout.EAST);
-        tabbedPane.addTab("Keranjang Belanja", cartPanel);
+        g.gridy = 8; g.weighty = 1.0;
+        summaryCard.add(Box.createGlue(), g);
 
-        // Events
-        cbPaymentMethod.addActionListener(e -> {
-            String selected = cbPaymentMethod.getSelectedItem().toString();
-            cardLayout.show(cardPanel, selected);
-        });
+        panel.add(summaryCard, BorderLayout.EAST);
+        tabbedPane.addTab("Keranjang", panel);
 
+        cbPaymentMethod.addActionListener(e -> cardLayout.show(cardPanel, cbPaymentMethod.getSelectedItem().toString()));
         btnRemoveItem.addActionListener(e -> handleRemoveCartItem());
         btnCheckout.addActionListener(e -> handleCheckout());
     }
 
     private void createHistoryTab() {
-        JPanel historyPanel = new JPanel(new BorderLayout(15, 15));
-        historyPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        historyPanel.setBackground(Color.WHITE);
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        panel.setBackground(BG);
 
-        String[] columns = {"ID Pesanan", "Tanggal", "Total Harga", "Metode Bayar", "Status Pesanan"};
-        historyModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        JPanel tableCard = wrapCard(new BorderLayout());
+        String[] cols = {"ID", "Tanggal", "Total Harga", "Metode Bayar", "Status"};
+        historyModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tblHistory = new JTable(historyModel);
-        tblHistory.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblHistory.setRowHeight(28);
-        JScrollPane scroll = new JScrollPane(tblHistory);
-        historyPanel.add(scroll, BorderLayout.CENTER);
+        styleTable(tblHistory);
 
-        btnRefreshHistory = new JButton("Refresh Riwayat Pesanan");
-        btnRefreshHistory.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btnRefreshHistory.setBackground(new Color(30, 41, 59)); // Slate
-        btnRefreshHistory.setForeground(Color.WHITE);
-        btnRefreshHistory.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnRefreshHistory.setFocusPainted(false);
-        
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Status renderer
+        tblHistory.getColumnModel().getColumn(4).setCellRenderer(new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
+                lbl.setHorizontalAlignment(JLabel.CENTER);
+                String s = v == null ? "" : v.toString();
+                if ("COMPLETED".equals(s) && !sel) lbl.setForeground(SUCCESS);
+                else if ("PENDING".equals(s) && !sel) lbl.setForeground(WARNING);
+                return lbl;
+            }
+        });
+
+        tableCard.add(new JScrollPane(tblHistory), BorderLayout.CENTER);
+        panel.add(tableCard, BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         bottom.setOpaque(false);
+        btnRefreshHistory = flatButton("Refresh", NEUTRAL, NEUTRAL_H);
+        btnRefreshHistory.setPreferredSize(new Dimension(100, 34));
         bottom.add(btnRefreshHistory);
-        historyPanel.add(bottom, BorderLayout.SOUTH);
+        panel.add(bottom, BorderLayout.SOUTH);
 
-        tabbedPane.addTab("Riwayat Pesanan Anda", historyPanel);
-
+        tabbedPane.addTab("Riwayat", panel);
         btnRefreshHistory.addActionListener(e -> loadHistoryData());
+    }
+
+    // --- Helpers ---
+
+    private JPanel wrapCard(LayoutManager layout) {
+        JPanel card = new JPanel(layout);
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER, 1),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
+        return card;
+    }
+
+    private JLabel fieldLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setForeground(TEXT_MUTED);
+        return lbl;
+    }
+
+    private void styleTable(JTable table) {
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setRowHeight(36);
+        table.setShowHorizontalLines(true);
+        table.setShowVerticalLines(false);
+        table.setGridColor(new Color(243, 244, 246));
+        table.setIntercellSpacing(new Dimension(0, 1));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        table.getTableHeader().setBackground(new Color(249, 250, 251));
+        table.getTableHeader().setForeground(TEXT_MUTED);
+        table.getTableHeader().setPreferredSize(new Dimension(0, 38));
+    }
+
+    private JButton flatButton(String text, Color bg, Color hover) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bg);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(0, 34));
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(hover); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(bg); }
+        });
+        return btn;
     }
 
     // --- Action Handlers ---
 
-    private void loadMenuData(String categoryFilter) {
+    private void loadMenuData(String filter) {
         menuModel.setRowCount(0);
         List<MenuItem> list = menuRepository.getAllMenuItems();
         for (MenuItem item : list) {
-            if ("Semua".equals(categoryFilter) || item.getCategory().equalsIgnoreCase(categoryFilter)) {
+            if ("Semua".equals(filter) || item.getCategory().equalsIgnoreCase(filter)) {
                 menuModel.addRow(new Object[]{
-                        item.getId(),
-                        item.getName(),
-                        item.getPrice(),
-                        item.getCategory(),
+                        item.getId(), item.getName(), item.getPrice(), item.getCategory(),
                         item.getDetailInfo().replace("Tingkat Kepedasan: ", "").replace("Suhu & Ukuran: ", "")
                 });
             }
@@ -371,43 +397,32 @@ public class CustomerFrame extends JFrame {
     private void handleAddToCart() {
         int row = tblMenu.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Silakan pilih menu dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih menu dari tabel!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         int itemId = (int) menuModel.getValueAt(row, 0);
         int qty = (int) spinQty.getValue();
 
         List<MenuItem> allItems = menuRepository.getAllMenuItems();
         MenuItem selectedItem = null;
         for (MenuItem item : allItems) {
-            if (item.getId() == itemId) {
-                selectedItem = item;
-                break;
-            }
+            if (item.getId() == itemId) { selectedItem = item; break; }
         }
-
         if (selectedItem == null) return;
 
-        // Check if item already exists in cart, then just update qty
         boolean exists = false;
-        for (OrderItem orderItem : cartList) {
-            if (orderItem.getMenuItem().getId() == itemId) {
-                orderItem.setQuantity(orderItem.getQuantity() + qty);
-                exists = true;
-                break;
+        for (OrderItem oi : cartList) {
+            if (oi.getMenuItem().getId() == itemId) {
+                oi.setQuantity(oi.getQuantity() + qty);
+                exists = true; break;
             }
         }
+        if (!exists) cartList.add(new OrderItem(selectedItem, qty));
 
-        if (!exists) {
-            cartList.add(new OrderItem(selectedItem, qty));
-        }
-
-        JOptionPane.showMessageDialog(this, qty + " porsi " + selectedItem.getName() + " ditambahkan ke keranjang.", "Keranjang Terisi", JOptionPane.INFORMATION_MESSAGE);
-        
-        // Reset spinner
+        JOptionPane.showMessageDialog(this,
+                qty + " x " + selectedItem.getName() + " ditambahkan ke keranjang.",
+                "Berhasil", JOptionPane.INFORMATION_MESSAGE);
         spinQty.setValue(1);
-        
         updateCartView();
     }
 
@@ -418,19 +433,17 @@ public class CustomerFrame extends JFrame {
             double sub = item.calculateSubtotal();
             totalCartPrice += sub;
             cartModel.addRow(new Object[]{
-                    item.getMenuItem().getName(),
-                    item.getMenuItem().getPrice(),
-                    item.getQuantity(),
-                    sub
+                    item.getMenuItem().getName(), item.getMenuItem().getPrice(),
+                    item.getQuantity(), sub
             });
         }
-        lblTotal.setText("Rp" + String.format("%,.0f", totalCartPrice));
+        lblTotal.setText("Rp " + String.format("%,.0f", totalCartPrice));
     }
 
     private void handleRemoveCartItem() {
         int row = tblCart.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih item keranjang yang ingin dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih item yang ingin dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
         cartList.remove(row);
@@ -439,7 +452,7 @@ public class CustomerFrame extends JFrame {
 
     private void handleCheckout() {
         if (cartList.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Keranjang belanja Anda kosong!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Keranjang kosong!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -449,54 +462,46 @@ public class CustomerFrame extends JFrame {
         if ("CASH".equals(paymentMethod)) {
             String cashStr = txtCashAmount.getText().trim();
             if (cashStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Masukkan jumlah uang pembayaran tunai!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Masukkan jumlah uang!", "Peringatan", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             try {
-                double cash = Double.parseDouble(cashStr);
-                paymentStrategy = new CashPayment(cash);
+                paymentStrategy = new CashPayment(Double.parseDouble(cashStr));
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Jumlah uang harus berupa angka!", "Input Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Jumlah harus berupa angka!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         } else {
             String provider = cbWalletProvider.getSelectedItem().toString();
             String phone = txtPhoneNumber.getText().trim();
             if (phone.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Masukkan nomor handphone akun E-Wallet Anda!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Masukkan nomor handphone!", "Peringatan", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             paymentStrategy = new EWalletPayment(provider, phone);
         }
 
-        // Process payment (Polymorphism)
         String receipt = paymentStrategy.processPayment(totalCartPrice);
         if (receipt.startsWith("Pembayaran Gagal")) {
-            JOptionPane.showMessageDialog(this, receipt, "Pembayaran Gagal", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, receipt, "Gagal", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Simpan Order ke Database
         Order order = new Order(0, customer.getUsername(), "", totalCartPrice, paymentMethod, "PENDING");
-        for (OrderItem item : cartList) {
-            order.addOrderItem(item);
-        }
+        for (OrderItem item : cartList) order.addOrderItem(item);
 
         if (orderRepository.saveOrder(order)) {
-            // Tampilkan struk/receipt sukses
-            JOptionPane.showMessageDialog(this, receipt + "\n\nPesanan Anda berhasil direkam dengan status: PENDING.\nSilakan tunggu konfirmasi Admin.", "Transaksi Sukses", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Clear cart
+            JOptionPane.showMessageDialog(this,
+                    receipt + "\n\nPesanan direkam dengan status PENDING.\nTunggu konfirmasi admin.",
+                    "Transaksi Berhasil", JOptionPane.INFORMATION_MESSAGE);
             cartList.clear();
             updateCartView();
             txtCashAmount.setText("");
             txtPhoneNumber.setText("");
-            
-            // Pindah ke tab riwayat pesanan
             tabbedPane.setSelectedIndex(2);
             loadHistoryData();
         } else {
-            JOptionPane.showMessageDialog(this, "Gagal memproses pesanan ke database.", "Transaksi Gagal", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal memproses pesanan.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -505,11 +510,9 @@ public class CustomerFrame extends JFrame {
         List<Order> list = orderRepository.getOrdersByCustomer(customer.getUsername());
         for (Order order : list) {
             historyModel.addRow(new Object[]{
-                    order.getId(),
-                    order.getOrderDate(),
-                    "Rp" + String.format("%,.0f", order.getTotalPrice()),
-                    order.getPaymentMethod(),
-                    order.getStatus()
+                    order.getId(), order.getOrderDate(),
+                    "Rp " + String.format("%,.0f", order.getTotalPrice()),
+                    order.getPaymentMethod(), order.getStatus()
             });
         }
     }

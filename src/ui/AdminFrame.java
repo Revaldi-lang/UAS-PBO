@@ -1,6 +1,5 @@
 package ui;
 
-import model.Admin;
 import model.Beverage;
 import model.Food;
 import model.MenuItem;
@@ -11,12 +10,10 @@ import repository.OrderRepository;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.List;
 
 public class AdminFrame extends JFrame {
@@ -25,18 +22,32 @@ public class AdminFrame extends JFrame {
     private OrderRepository orderRepository;
 
     private JTabbedPane tabbedPane;
-    
-    // Components for Menu Panel
+
     private JTable tblMenu;
     private DefaultTableModel menuModel;
     private JTextField txtMenuId, txtMenuName, txtMenuPrice, txtMenuDetail;
     private JComboBox<String> cbCategory;
     private JButton btnAddMenu, btnEditMenu, btnDeleteMenu, btnClearMenu;
 
-    // Components for Order Panel
     private JTable tblOrders;
     private DefaultTableModel orderModel;
     private JButton btnCompleteOrder, btnRefreshOrders;
+
+    // Colors
+    private static final Color ACCENT      = new Color(79, 70, 229);
+    private static final Color ACCENT_HOVER = new Color(67, 56, 202);
+    private static final Color BG          = new Color(249, 250, 251);
+    private static final Color TEXT_DARK   = new Color(17, 24, 39);
+    private static final Color TEXT_MUTED  = new Color(107, 114, 128);
+    private static final Color BORDER      = new Color(229, 231, 235);
+    private static final Color SUCCESS     = new Color(5, 150, 105);
+    private static final Color SUCCESS_H   = new Color(4, 120, 87);
+    private static final Color WARNING     = new Color(217, 119, 6);
+    private static final Color WARNING_H   = new Color(180, 83, 9);
+    private static final Color DANGER      = new Color(220, 38, 38);
+    private static final Color DANGER_H    = new Color(185, 28, 28);
+    private static final Color NEUTRAL     = new Color(107, 114, 128);
+    private static final Color NEUTRAL_H   = new Color(75, 85, 99);
 
     public AdminFrame(User admin) {
         this.admin = admin;
@@ -46,209 +57,161 @@ public class AdminFrame extends JFrame {
     }
 
     private void initUI() {
-        setTitle("Admin Dashboard - Food Ordering System");
-        setSize(950, 620);
+        setTitle("Admin Dashboard");
+        setSize(1000, 640);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Main Layout
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(245, 246, 248));
+        JPanel main = new JPanel(new BorderLayout());
+        main.setBackground(BG);
 
-        // Header Panel
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(30, 41, 59)); // Slate-800
-        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
+        // Header
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER),
+                new EmptyBorder(14, 24, 14, 24)
+        ));
 
-        JLabel lblTitle = new JLabel("ADMINISTRATOR CONTROL PANEL");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitle.setForeground(Color.WHITE);
+        JPanel titleGroup = new JPanel(new GridLayout(2, 1, 0, 2));
+        titleGroup.setOpaque(false);
+        JLabel lblTitle = new JLabel("Admin Dashboard");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblTitle.setForeground(TEXT_DARK);
+        JLabel lblUser = new JLabel("Login sebagai " + admin.getUsername());
+        lblUser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblUser.setForeground(TEXT_MUTED);
+        titleGroup.add(lblTitle);
+        titleGroup.add(lblUser);
+        header.add(titleGroup, BorderLayout.WEST);
 
-        JLabel lblWelcome = new JLabel("Login sebagai: " + admin.getUsername());
-        lblWelcome.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblWelcome.setForeground(new Color(148, 163, 184)); // Muted Text
+        JButton btnLogout = flatButton("Logout", DANGER, DANGER_H);
+        btnLogout.setPreferredSize(new Dimension(85, 34));
+        btnLogout.addActionListener(e -> { dispose(); new LoginFrame().setVisible(true); });
+        JPanel rp = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        rp.setOpaque(false);
+        rp.add(btnLogout);
+        header.add(rp, BorderLayout.EAST);
 
-        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 2));
-        titlePanel.setOpaque(false);
-        titlePanel.add(lblTitle);
-        titlePanel.add(lblWelcome);
+        main.add(header, BorderLayout.NORTH);
 
-        JButton btnLogout = new JButton("Logout");
-        btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnLogout.setBackground(new Color(220, 53, 69)); // Danger Red
-        btnLogout.setForeground(Color.WHITE);
-        btnLogout.setFocusPainted(false);
-        btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnLogout.addActionListener(e -> {
-            this.dispose();
-            new LoginFrame().setVisible(true);
-        });
-
-        headerPanel.add(titlePanel, BorderLayout.WEST);
-        headerPanel.add(btnLogout, BorderLayout.EAST);
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-
-        // Tabbed Pane
+        // Tabs
         tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
+        tabbedPane.setBorder(new EmptyBorder(0, 0, 0, 0));
         createMenuTab();
         createOrdersTab();
+        main.add(tabbedPane, BorderLayout.CENTER);
 
-        mainPanel.add(tabbedPane, BorderLayout.CENTER);
-        add(mainPanel);
-
-        // Load Initial Data
+        add(main);
         loadMenuData();
         loadOrdersData();
     }
 
     private void createMenuTab() {
-        JPanel menuPanel = new JPanel(new BorderLayout(15, 0));
-        menuPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        menuPanel.setBackground(Color.WHITE);
+        JPanel panel = new JPanel(new BorderLayout(16, 0));
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        panel.setBackground(BG);
 
-        // LEFT: Table
-        String[] menuColumns = {"ID", "Nama Menu", "Harga", "Kategori", "Detail (Pedas/Suhu/Size)"};
-        menuModel = new DefaultTableModel(menuColumns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        // Table card
+        JPanel tableCard = wrapCard(new BorderLayout());
+        String[] cols = {"ID", "Nama", "Harga", "Kategori", "Detail"};
+        menuModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tblMenu = new JTable(menuModel);
-        tblMenu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblMenu.setRowHeight(28);
-        JScrollPane scrollPane = new JScrollPane(tblMenu);
-        menuPanel.add(scrollPane, BorderLayout.CENTER);
+        styleTable(tblMenu);
+        tblMenu.getColumnModel().getColumn(0).setPreferredWidth(40);
+        tblMenu.getColumnModel().getColumn(0).setMaxWidth(60);
+        tableCard.add(new JScrollPane(tblMenu), BorderLayout.CENTER);
+        panel.add(tableCard, BorderLayout.CENTER);
 
-        // RIGHT: Input Form & CRUD Operations
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(new Color(248, 249, 250));
-        formPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                new EmptyBorder(15, 15, 15, 15)
-        ));
-        formPanel.setPreferredSize(new Dimension(330, 0));
+        // Form card
+        JPanel formCard = wrapCard(new GridBagLayout());
+        formCard.setPreferredSize(new Dimension(280, 0));
+        GridBagConstraints g = new GridBagConstraints();
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.weightx = 1.0;
+        g.gridx = 0;
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.weightx = 1.0;
+        g.gridy = 0; g.insets = new Insets(0, 0, 16, 0);
+        JLabel formTitle = new JLabel("Kelola Menu");
+        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        formTitle.setForeground(TEXT_DARK);
+        formCard.add(formTitle, g);
 
-        // Title
-        JLabel lblFormTitle = new JLabel("Form Kelola Menu");
-        lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblFormTitle.setForeground(new Color(30, 41, 59));
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        formPanel.add(lblFormTitle, gbc);
-        gbc.gridwidth = 1;
-
-        // ID (Read-only)
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("ID Menu:"), gbc);
+        g.gridy = 1; g.insets = new Insets(0, 0, 4, 0);
+        formCard.add(fieldLabel("ID Menu"), g);
         txtMenuId = new JTextField();
         txtMenuId.setEditable(false);
-        txtMenuId.setBackground(new Color(226, 232, 240));
-        txtMenuId.setPreferredSize(new Dimension(0, 30));
-        gbc.gridx = 1;
-        formPanel.add(txtMenuId, gbc);
+        txtMenuId.setBackground(new Color(243, 244, 246));
+        txtMenuId.setPreferredSize(new Dimension(0, 34));
+        g.gridy = 2; g.insets = new Insets(0, 0, 12, 0);
+        formCard.add(txtMenuId, g);
 
-        // Name
-        gbc.gridx = 0; gbc.gridy = 2;
-        formPanel.add(new JLabel("Nama Menu:"), gbc);
+        g.gridy = 3; g.insets = new Insets(0, 0, 4, 0);
+        formCard.add(fieldLabel("Nama Menu"), g);
         txtMenuName = new JTextField();
-        txtMenuName.setPreferredSize(new Dimension(0, 30));
+        txtMenuName.setPreferredSize(new Dimension(0, 34));
         txtMenuName.putClientProperty("JTextField.placeholderText", "Nama hidangan");
-        gbc.gridx = 1;
-        formPanel.add(txtMenuName, gbc);
+        g.gridy = 4; g.insets = new Insets(0, 0, 12, 0);
+        formCard.add(txtMenuName, g);
 
-        // Price
-        gbc.gridx = 0; gbc.gridy = 3;
-        formPanel.add(new JLabel("Harga:"), gbc);
+        g.gridy = 5; g.insets = new Insets(0, 0, 4, 0);
+        formCard.add(fieldLabel("Harga"), g);
         txtMenuPrice = new JTextField();
-        txtMenuPrice.setPreferredSize(new Dimension(0, 30));
-        txtMenuPrice.putClientProperty("JTextField.placeholderText", "Contoh: 15000");
-        gbc.gridx = 1;
-        formPanel.add(txtMenuPrice, gbc);
+        txtMenuPrice.setPreferredSize(new Dimension(0, 34));
+        txtMenuPrice.putClientProperty("JTextField.placeholderText", "Contoh: 25000");
+        g.gridy = 6; g.insets = new Insets(0, 0, 12, 0);
+        formCard.add(txtMenuPrice, g);
 
-        // Category
-        gbc.gridx = 0; gbc.gridy = 4;
-        formPanel.add(new JLabel("Kategori:"), gbc);
+        g.gridy = 7; g.insets = new Insets(0, 0, 4, 0);
+        formCard.add(fieldLabel("Kategori"), g);
         cbCategory = new JComboBox<>(new String[]{"FOOD", "BEVERAGE"});
-        cbCategory.setPreferredSize(new Dimension(0, 30));
-        gbc.gridx = 1;
-        formPanel.add(cbCategory, gbc);
+        cbCategory.setPreferredSize(new Dimension(0, 34));
+        g.gridy = 8; g.insets = new Insets(0, 0, 12, 0);
+        formCard.add(cbCategory, g);
 
-        // Detail
-        gbc.gridx = 0; gbc.gridy = 5;
-        formPanel.add(new JLabel("Detail Spec:"), gbc);
+        g.gridy = 9; g.insets = new Insets(0, 0, 4, 0);
+        formCard.add(fieldLabel("Detail Spesifikasi"), g);
         txtMenuDetail = new JTextField();
-        txtMenuDetail.setPreferredSize(new Dimension(0, 30));
-        txtMenuDetail.putClientProperty("JTextField.placeholderText", "Contoh: Pedas Sedang");
-        txtMenuDetail.setToolTipText("Contoh: Pedas Sedang (Food) atau Large / Ice (Beverage)");
-        gbc.gridx = 1;
-        formPanel.add(txtMenuDetail, gbc);
+        txtMenuDetail.setPreferredSize(new Dimension(0, 34));
+        txtMenuDetail.putClientProperty("JTextField.placeholderText", "Cth: Pedas Sedang");
+        g.gridy = 10; g.insets = new Insets(0, 0, 20, 0);
+        formCard.add(txtMenuDetail, g);
 
-        // Buttons Panel inside Form
-        JPanel btnFormPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        btnFormPanel.setOpaque(false);
+        // Buttons 2x2
+        JPanel btnGrid = new JPanel(new GridLayout(2, 2, 8, 8));
+        btnGrid.setOpaque(false);
+        btnAddMenu = flatButton("Tambah", SUCCESS, SUCCESS_H);
+        btnEditMenu = flatButton("Simpan Edit", WARNING, WARNING_H);
+        btnDeleteMenu = flatButton("Hapus", DANGER, DANGER_H);
+        btnClearMenu = flatButton("Clear", NEUTRAL, NEUTRAL_H);
+        btnGrid.add(btnAddMenu);
+        btnGrid.add(btnEditMenu);
+        btnGrid.add(btnDeleteMenu);
+        btnGrid.add(btnClearMenu);
+        g.gridy = 11; g.insets = new Insets(0, 0, 0, 0);
+        formCard.add(btnGrid, g);
 
-        btnAddMenu = new JButton("Tambah");
-        btnAddMenu.setBackground(new Color(40, 167, 69)); // Success Green
-        btnAddMenu.setForeground(Color.WHITE);
-        btnAddMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnAddMenu.setFocusPainted(false);
+        g.gridy = 12; g.weighty = 1.0;
+        formCard.add(Box.createGlue(), g);
 
-        btnEditMenu = new JButton("Simpan Edit");
-        btnEditMenu.setBackground(new Color(245, 158, 11)); // Amber
-        btnEditMenu.setForeground(Color.WHITE);
-        btnEditMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnEditMenu.setFocusPainted(false);
+        panel.add(formCard, BorderLayout.EAST);
+        tabbedPane.addTab("Kelola Menu", panel);
 
-        btnDeleteMenu = new JButton("Hapus");
-        btnDeleteMenu.setBackground(new Color(220, 53, 69)); // Danger Red
-        btnDeleteMenu.setForeground(Color.WHITE);
-        btnDeleteMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnDeleteMenu.setFocusPainted(false);
-
-        btnClearMenu = new JButton("Clear");
-        btnClearMenu.setBackground(new Color(108, 117, 125)); // Muted Gray
-        btnClearMenu.setForeground(Color.WHITE);
-        btnClearMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnClearMenu.setFocusPainted(false);
-
-        btnFormPanel.add(btnAddMenu);
-        btnFormPanel.add(btnEditMenu);
-        btnFormPanel.add(btnDeleteMenu);
-        btnFormPanel.add(btnClearMenu);
-
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
-        gbc.insets = new Insets(20, 8, 8, 8);
-        formPanel.add(btnFormPanel, gbc);
-
-        // Dummy filler for spacing
-        gbc.gridy = 7; gbc.weighty = 1.0;
-        formPanel.add(new JLabel(""), gbc);
-
-        menuPanel.add(formPanel, BorderLayout.EAST);
-        tabbedPane.addTab("Kelola Menu Makanan & Minuman", menuPanel);
-
-        // Events for Menu
+        // Events
         tblMenu.addMouseListener(new MouseAdapter() {
-            @Override
             public void mouseClicked(MouseEvent e) {
-                int row = tblMenu.getSelectedRow();
-                if (row != -1) {
-                    txtMenuId.setText(menuModel.getValueAt(row, 0).toString());
-                    txtMenuName.setText(menuModel.getValueAt(row, 1).toString());
-                    txtMenuPrice.setText(menuModel.getValueAt(row, 2).toString());
-                    cbCategory.setSelectedItem(menuModel.getValueAt(row, 3).toString());
-                    txtMenuDetail.setText(menuModel.getValueAt(row, 4).toString());
+                int r = tblMenu.getSelectedRow();
+                if (r != -1) {
+                    txtMenuId.setText(menuModel.getValueAt(r, 0).toString());
+                    txtMenuName.setText(menuModel.getValueAt(r, 1).toString());
+                    txtMenuPrice.setText(menuModel.getValueAt(r, 2).toString());
+                    cbCategory.setSelectedItem(menuModel.getValueAt(r, 3).toString());
+                    txtMenuDetail.setText(menuModel.getValueAt(r, 4).toString());
                 }
             }
         });
-
         btnAddMenu.addActionListener(e -> handleAddMenu());
         btnEditMenu.addActionListener(e -> handleEditMenu());
         btnDeleteMenu.addActionListener(e -> handleDeleteMenu());
@@ -256,51 +219,97 @@ public class AdminFrame extends JFrame {
     }
 
     private void createOrdersTab() {
-        JPanel orderPanel = new JPanel(new BorderLayout(15, 15));
-        orderPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        orderPanel.setBackground(Color.WHITE);
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        panel.setBackground(BG);
 
-        // Table
-        String[] orderColumns = {"ID Pesanan", "Pelanggan", "Tanggal Pesanan", "Total Bayar", "Metode Bayar", "Status"};
-        orderModel = new DefaultTableModel(orderColumns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+        JPanel tableCard = wrapCard(new BorderLayout());
+        String[] cols = {"ID", "Pelanggan", "Tanggal", "Total Bayar", "Metode Bayar", "Status"};
+        orderModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tblOrders = new JTable(orderModel);
-        tblOrders.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblOrders.setRowHeight(28);
-        JScrollPane scrollPane = new JScrollPane(tblOrders);
-        orderPanel.add(scrollPane, BorderLayout.CENTER);
+        styleTable(tblOrders);
 
-        // Control Panel
-        JPanel ctrlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-        ctrlPanel.setOpaque(false);
+        // Status badge renderer
+        tblOrders.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean foc, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, sel, foc, r, c);
+                lbl.setHorizontalAlignment(JLabel.CENTER);
+                String s = v == null ? "" : v.toString();
+                if ("COMPLETED".equals(s)) {
+                    if (!sel) lbl.setForeground(SUCCESS);
+                } else if ("PENDING".equals(s)) {
+                    if (!sel) lbl.setForeground(WARNING);
+                }
+                return lbl;
+            }
+        });
 
-        btnCompleteOrder = new JButton("Selesaikan Pesanan (COMPLETED)");
-        btnCompleteOrder.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnCompleteOrder.setBackground(new Color(40, 167, 69)); // Success Green
-        btnCompleteOrder.setForeground(Color.WHITE);
-        btnCompleteOrder.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCompleteOrder.setFocusPainted(false);
+        tableCard.add(new JScrollPane(tblOrders), BorderLayout.CENTER);
+        panel.add(tableCard, BorderLayout.CENTER);
 
-        btnRefreshOrders = new JButton("Refresh Daftar");
-        btnRefreshOrders.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btnRefreshOrders.setBackground(new Color(30, 41, 59)); // Slate
-        btnRefreshOrders.setForeground(Color.WHITE);
-        btnRefreshOrders.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnRefreshOrders.setFocusPainted(false);
+        JPanel ctrl = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        ctrl.setOpaque(false);
+        btnCompleteOrder = flatButton("Selesaikan Pesanan", SUCCESS, SUCCESS_H);
+        btnCompleteOrder.setPreferredSize(new Dimension(180, 36));
+        btnRefreshOrders = flatButton("Refresh", NEUTRAL, NEUTRAL_H);
+        btnRefreshOrders.setPreferredSize(new Dimension(100, 36));
+        ctrl.add(btnCompleteOrder);
+        ctrl.add(btnRefreshOrders);
+        panel.add(ctrl, BorderLayout.SOUTH);
 
-        ctrlPanel.add(btnCompleteOrder);
-        ctrlPanel.add(btnRefreshOrders);
-        orderPanel.add(ctrlPanel, BorderLayout.SOUTH);
+        tabbedPane.addTab("Pesanan Masuk", panel);
 
-        tabbedPane.addTab("Daftar Pesanan Masuk", orderPanel);
-
-        // Events
         btnCompleteOrder.addActionListener(e -> handleCompleteOrder());
         btnRefreshOrders.addActionListener(e -> loadOrdersData());
+    }
+
+    // --- Shared helpers ---
+
+    private JPanel wrapCard(LayoutManager layout) {
+        JPanel card = new JPanel(layout);
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER, 1),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
+        return card;
+    }
+
+    private JLabel fieldLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setForeground(TEXT_MUTED);
+        return lbl;
+    }
+
+    private void styleTable(JTable table) {
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setRowHeight(36);
+        table.setShowHorizontalLines(true);
+        table.setShowVerticalLines(false);
+        table.setGridColor(new Color(243, 244, 246));
+        table.setIntercellSpacing(new Dimension(0, 1));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        table.getTableHeader().setBackground(new Color(249, 250, 251));
+        table.getTableHeader().setForeground(TEXT_MUTED);
+        table.getTableHeader().setPreferredSize(new Dimension(0, 38));
+    }
+
+    private JButton flatButton(String text, Color bg, Color hover) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bg);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(0, 34));
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(hover); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(bg); }
+        });
+        return btn;
     }
 
     // --- Action Handlers ---
@@ -310,10 +319,7 @@ public class AdminFrame extends JFrame {
         List<MenuItem> list = menuRepository.getAllMenuItems();
         for (MenuItem item : list) {
             menuModel.addRow(new Object[]{
-                    item.getId(),
-                    item.getName(),
-                    item.getPrice(),
-                    item.getCategory(),
+                    item.getId(), item.getName(), item.getPrice(), item.getCategory(),
                     item.getDetailInfo().replace("Tingkat Kepedasan: ", "").replace("Suhu & Ukuran: ", "")
             });
         }
@@ -329,81 +335,61 @@ public class AdminFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Semua form harus diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         try {
             double price = Double.parseDouble(priceStr);
-            MenuItem item;
-            if ("FOOD".equals(category)) {
-                item = new Food(0, name, price, detail);
-            } else {
-                item = new Beverage(0, name, price, detail);
-            }
-
+            MenuItem item = "FOOD".equals(category) ? new Food(0, name, price, detail) : new Beverage(0, name, price, detail);
             if (menuRepository.addMenuItem(item)) {
                 JOptionPane.showMessageDialog(this, "Menu berhasil ditambahkan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
-                loadMenuData();
-                clearMenuForm();
+                loadMenuData(); clearMenuForm();
             } else {
-                JOptionPane.showMessageDialog(this, "Gagal menambahkan menu ke database.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal menambahkan menu.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Harga harus berupa angka numerik!", "Input Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Harga harus berupa angka!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleEditMenu() {
         String idStr = txtMenuId.getText();
         if (idStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Pilih menu yang akan diedit dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih menu dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         String name = txtMenuName.getText().trim();
         String priceStr = txtMenuPrice.getText().trim();
         String category = cbCategory.getSelectedItem().toString();
         String detail = txtMenuDetail.getText().trim();
-
         if (name.isEmpty() || priceStr.isEmpty() || detail.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua form harus diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         try {
             int id = Integer.parseInt(idStr);
             double price = Double.parseDouble(priceStr);
-            MenuItem item;
-            if ("FOOD".equals(category)) {
-                item = new Food(id, name, price, detail);
-            } else {
-                item = new Beverage(id, name, price, detail);
-            }
-
+            MenuItem item = "FOOD".equals(category) ? new Food(id, name, price, detail) : new Beverage(id, name, price, detail);
             if (menuRepository.updateMenuItem(item)) {
                 JOptionPane.showMessageDialog(this, "Menu berhasil diperbarui!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
-                loadMenuData();
-                clearMenuForm();
+                loadMenuData(); clearMenuForm();
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal mengupdate menu.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Harga harus berupa angka numerik!", "Input Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Harga harus berupa angka!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleDeleteMenu() {
         String idStr = txtMenuId.getText();
         if (idStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Pilih menu yang akan dihapus dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih menu dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus menu ini?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Yakin ingin menghapus menu ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             int id = Integer.parseInt(idStr);
             if (menuRepository.deleteMenuItem(id)) {
                 JOptionPane.showMessageDialog(this, "Menu berhasil dihapus!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
-                loadMenuData();
-                clearMenuForm();
+                loadMenuData(); clearMenuForm();
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal menghapus menu.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -411,12 +397,9 @@ public class AdminFrame extends JFrame {
     }
 
     private void clearMenuForm() {
-        txtMenuId.setText("");
-        txtMenuName.setText("");
-        txtMenuPrice.setText("");
-        txtMenuDetail.setText("");
-        cbCategory.setSelectedIndex(0);
-        tblMenu.clearSelection();
+        txtMenuId.setText(""); txtMenuName.setText("");
+        txtMenuPrice.setText(""); txtMenuDetail.setText("");
+        cbCategory.setSelectedIndex(0); tblMenu.clearSelection();
     }
 
     private void loadOrdersData() {
@@ -424,12 +407,9 @@ public class AdminFrame extends JFrame {
         List<Order> list = orderRepository.getAllOrders();
         for (Order order : list) {
             orderModel.addRow(new Object[]{
-                    order.getId(),
-                    order.getCustomerName(),
-                    order.getOrderDate(),
+                    order.getId(), order.getCustomerName(), order.getOrderDate(),
                     "Rp" + String.format("%,.0f", order.getTotalPrice()),
-                    order.getPaymentMethod(),
-                    order.getStatus()
+                    order.getPaymentMethod(), order.getStatus()
             });
         }
     }
@@ -437,23 +417,20 @@ public class AdminFrame extends JFrame {
     private void handleCompleteOrder() {
         int row = tblOrders.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih pesanan dari tabel terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih pesanan dari tabel!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         int orderId = (int) orderModel.getValueAt(row, 0);
-        String currentStatus = orderModel.getValueAt(row, 5).toString();
-
-        if ("COMPLETED".equals(currentStatus)) {
-            JOptionPane.showMessageDialog(this, "Pesanan ini sudah selesai!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+        String status = orderModel.getValueAt(row, 5).toString();
+        if ("COMPLETED".equals(status)) {
+            JOptionPane.showMessageDialog(this, "Pesanan ini sudah selesai!", "Info", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         if (orderRepository.updateOrderStatus(orderId, "COMPLETED")) {
-            JOptionPane.showMessageDialog(this, "Pesanan berhasil diselesaikan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pesanan diselesaikan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
             loadOrdersData();
         } else {
-            JOptionPane.showMessageDialog(this, "Gagal mengubah status pesanan.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal mengubah status.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

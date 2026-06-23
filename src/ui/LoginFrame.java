@@ -8,8 +8,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
 public class LoginFrame extends JFrame {
     private JTextField txtUsername;
@@ -18,125 +17,143 @@ public class LoginFrame extends JFrame {
     private JButton btnRegister;
     private UserRepository userRepository;
 
+    // Clean color palette
+    private static final Color ACCENT      = new Color(79, 70, 229);   // Indigo-600
+    private static final Color ACCENT_HOVER = new Color(67, 56, 202);  // Indigo-700
+    private static final Color BG          = new Color(249, 250, 251); // Gray-50
+    private static final Color CARD_BG     = Color.WHITE;
+    private static final Color TEXT_DARK   = new Color(17, 24, 39);    // Gray-900
+    private static final Color TEXT_MUTED  = new Color(107, 114, 128); // Gray-500
+    private static final Color BORDER      = new Color(229, 231, 235); // Gray-200
+    private static final Color INPUT_BG    = new Color(249, 250, 251); // Gray-50
+    private static final Color INPUT_FOCUS = new Color(79, 70, 229);
+
     public LoginFrame() {
         userRepository = new UserRepository();
         initUI();
     }
 
     private void initUI() {
-        setTitle("Food Ordering System - Login");
-        setSize(420, 365);
+        setTitle("Food Ordering System");
+        setSize(400, 480);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Main Panel (Background)
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBackground(new Color(242, 245, 249)); // Very soft blue-grey
+        // Background panel
+        JPanel bg = new JPanel(new GridBagLayout());
+        bg.setBackground(BG);
 
-        // Card Panel (Container for login elements)
-        JPanel cardPanel = new JPanel();
-        cardPanel.setLayout(new BoxLayout(cardPanel, BoxLayout.Y_AXIS));
-        cardPanel.setBackground(Color.WHITE);
-        cardPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(218, 224, 233), 1, true),
-                new EmptyBorder(25, 30, 25, 30)
+        // Card
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(CARD_BG);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER, 1),
+                new EmptyBorder(36, 32, 36, 32)
         ));
 
-        // Header Label
-        JLabel lblHeader = new JLabel("FOOD ORDER SYSTEM");
-        lblHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblHeader.setForeground(new Color(230, 74, 25)); // Modern Warm Coral/Orange
+        // Title
+        JLabel lblTitle = new JLabel("Food Order System");
+        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTitle.setForeground(TEXT_DARK);
 
-        JLabel lblSubHeader = new JLabel("Silakan masuk ke akun Anda");
-        lblSubHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblSubHeader.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblSubHeader.setForeground(new Color(120, 130, 140));
-        lblSubHeader.setBorder(new EmptyBorder(5, 0, 20, 0));
+        JLabel lblSub = new JLabel("Masuk ke akun Anda untuk melanjutkan");
+        lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setForeground(TEXT_MUTED);
+        lblSub.setBorder(new EmptyBorder(6, 0, 28, 0));
 
-        cardPanel.add(lblHeader);
-        cardPanel.add(lblSubHeader);
+        card.add(lblTitle);
+        card.add(lblSub);
 
-        // Input Form
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
+        // Form
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(6, 0, 6, 0);
         gbc.weightx = 1.0;
 
-        JLabel lblUsername = new JLabel("Username");
-        lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblUsername.setForeground(new Color(80, 90, 100));
+        gbc.gridx = 0; gbc.gridy = 0; gbc.insets = new Insets(0, 0, 6, 0);
+        form.add(fieldLabel("Username"), gbc);
+
         txtUsername = new JTextField();
-        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtUsername.setPreferredSize(new Dimension(0, 40));
         txtUsername.putClientProperty("JTextField.placeholderText", "Masukkan username");
-        txtUsername.setPreferredSize(new Dimension(0, 32));
+        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 18, 0);
+        form.add(txtUsername, gbc);
 
-        JLabel lblPassword = new JLabel("Password");
-        lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblPassword.setForeground(new Color(80, 90, 100));
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 6, 0);
+        form.add(fieldLabel("Password"), gbc);
+
         txtPassword = new JPasswordField();
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtPassword.setPreferredSize(new Dimension(0, 40));
         txtPassword.putClientProperty("JTextField.placeholderText", "Masukkan password");
-        txtPassword.setPreferredSize(new Dimension(0, 32));
+        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 28, 0);
+        form.add(txtPassword, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(lblUsername, gbc);
-        gbc.gridy = 1;
-        formPanel.add(txtUsername, gbc);
-        gbc.gridy = 2;
-        formPanel.add(lblPassword, gbc);
-        gbc.gridy = 3;
-        formPanel.add(txtPassword, gbc);
+        card.add(form);
 
-        cardPanel.add(formPanel);
-        cardPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-        // Button Panel
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 12, 0));
-        buttonPanel.setOpaque(false);
-
-        btnLogin = new JButton("Login");
+        // Login button
+        btnLogin = new JButton("Masuk");
         btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnLogin.setBackground(new Color(230, 74, 25)); // Orange Red Accent
+        btnLogin.setBackground(ACCENT);
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFocusPainted(false);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnLogin.setPreferredSize(new Dimension(0, 36));
+        btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnLogin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        btnLogin.setPreferredSize(new Dimension(Integer.MAX_VALUE, 42));
+        btnLogin.addMouseListener(hoverEffect(btnLogin, ACCENT, ACCENT_HOVER));
+        card.add(btnLogin);
 
-        btnRegister = new JButton("Register");
-        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnRegister.setBackground(new Color(108, 117, 125)); // Secondary Gray
-        btnRegister.setForeground(Color.WHITE);
+        card.add(Box.createRigidArea(new Dimension(0, 12)));
+
+        // Register button
+        btnRegister = new JButton("Buat Akun Baru");
+        btnRegister.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnRegister.setBackground(CARD_BG);
+        btnRegister.setForeground(ACCENT);
         btnRegister.setFocusPainted(false);
         btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnRegister.setPreferredSize(new Dimension(0, 36));
+        btnRegister.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnRegister.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        btnRegister.setPreferredSize(new Dimension(Integer.MAX_VALUE, 42));
+        btnRegister.setBorder(BorderFactory.createLineBorder(BORDER, 1));
+        btnRegister.addMouseListener(hoverEffect(btnRegister, CARD_BG, new Color(243, 244, 246)));
+        card.add(btnRegister);
 
-        buttonPanel.add(btnLogin);
-        buttonPanel.add(btnRegister);
-
-        cardPanel.add(buttonPanel);
-
-        // Add card to main panel
-        mainPanel.add(cardPanel);
-        add(mainPanel);
+        bg.add(card);
+        add(bg);
 
         // Listeners
-        btnLogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleLogin();
-            }
-        });
+        btnLogin.addActionListener(e -> handleLogin());
+        btnRegister.addActionListener(e -> handleRegister());
 
-        btnRegister.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleRegister();
+        KeyAdapter enterKey = new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) handleLogin();
             }
-        });
+        };
+        txtUsername.addKeyListener(enterKey);
+        txtPassword.addKeyListener(enterKey);
+    }
+
+    private JLabel fieldLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setForeground(TEXT_DARK);
+        return lbl;
+    }
+
+    private MouseAdapter hoverEffect(JButton btn, Color normal, Color hover) {
+        return new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btn.setBackground(hover); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(normal); }
+        };
     }
 
     private void handleLogin() {
@@ -151,9 +168,7 @@ public class LoginFrame extends JFrame {
         User user = userRepository.login(username, password);
         if (user != null) {
             JOptionPane.showMessageDialog(this, user.getWelcomeMessage(), "Login Berhasil", JOptionPane.INFORMATION_MESSAGE);
-            this.dispose(); // Tutup window login
-
-            // Buka Dashboard yang sesuai berdasarkan role (Polymorphism)
+            this.dispose();
             if ("ADMIN".equalsIgnoreCase(user.getRole())) {
                 new AdminFrame(user).setVisible(true);
             } else {
@@ -175,59 +190,51 @@ public class LoginFrame extends JFrame {
 
         boolean success = userRepository.register(username, password);
         if (success) {
-            JOptionPane.showMessageDialog(this, "Registrasi berhasil! Silakan login menggunakan akun Anda.", "Registrasi Sukses", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Registrasi berhasil! Silakan login.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
             txtPassword.setText("");
         } else {
-            JOptionPane.showMessageDialog(this, "Registrasi gagal! Username mungkin sudah digunakan.", "Registrasi Gagal", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Registrasi gagal! Username mungkin sudah digunakan.", "Gagal", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     public static void main(String[] args) {
-        // Set Look and Feel to FlatLaf
         try {
             FlatLightLaf.setup();
-            
-            // Set global components rounded corners and formatting
-            UIManager.put("Button.arc", 12);
-            UIManager.put("Component.arc", 12);
-            UIManager.put("TextComponent.arc", 12);
+            UIManager.put("Button.arc", 8);
+            UIManager.put("Component.arc", 8);
+            UIManager.put("TextComponent.arc", 8);
             UIManager.put("ScrollBar.thumbArc", 999);
             UIManager.put("ScrollBar.thumbInsets", new Insets(2, 2, 2, 2));
-            
-            // Styles for specific components
+            UIManager.put("ScrollBar.width", 10);
+
             UIManager.put("TabbedPane.showTabSeparators", true);
-            UIManager.put("TabbedPane.tabHeight", 36);
+            UIManager.put("TabbedPane.tabHeight", 38);
             UIManager.put("TabbedPane.selectedBackground", Color.WHITE);
-            UIManager.put("TabbedPane.font", new Font("Segoe UI", Font.BOLD, 13));
-            
-            UIManager.put("Table.rowHeight", 28);
+            UIManager.put("TabbedPane.font", new Font("Segoe UI", Font.PLAIN, 13));
+            UIManager.put("TabbedPane.underlineColor", new Color(79, 70, 229));
+            UIManager.put("TabbedPane.selectedForeground", new Color(79, 70, 229));
+
+            UIManager.put("Table.rowHeight", 36);
             UIManager.put("Table.showHorizontalLines", true);
             UIManager.put("Table.showVerticalLines", false);
             UIManager.put("Table.intercellSpacing", new Dimension(0, 1));
-            UIManager.put("Table.selectionBackground", new Color(254, 240, 235)); // Soft warm/orange select bg
-            UIManager.put("Table.selectionForeground", new Color(230, 74, 25)); // Orange accent select text
-            
-            UIManager.put("TableHeader.background", new Color(248, 249, 250));
-            UIManager.put("TableHeader.foreground", new Color(74, 85, 104));
-            UIManager.put("TableHeader.font", new Font("Segoe UI", Font.BOLD, 12));
+            UIManager.put("Table.selectionBackground", new Color(238, 242, 255));
+            UIManager.put("Table.selectionForeground", new Color(55, 48, 163));
+
+            UIManager.put("TableHeader.background", new Color(249, 250, 251));
+            UIManager.put("TableHeader.foreground", new Color(107, 114, 128));
+            UIManager.put("TableHeader.font", new Font("Segoe UI", Font.BOLD, 11));
+            UIManager.put("TableHeader.separatorColor", new Color(229, 231, 235));
+            UIManager.put("TableHeader.bottomSeparatorColor", new Color(229, 231, 235));
+
         } catch (Exception e) {
             e.printStackTrace();
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            } catch (Exception ex) { ex.printStackTrace(); }
         }
 
-        // Jalankan inisialisasi database
         DatabaseConfig.initializeDatabase();
-
-        // Tampilkan Login Screen
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new LoginFrame().setVisible(true);
-            }
-        });
+        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }
