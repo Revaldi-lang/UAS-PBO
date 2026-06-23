@@ -33,6 +33,11 @@ public class AdminFrame extends JFrame {
     private JTable tblOrders;
     private DefaultTableModel orderModel;
     private JButton btnCompleteOrder, btnRefreshOrders, btnDetailOrder, btnPrintOrder;
+ 
+    private JLabel lblTotalRevenue, lblTotalDiscounts, lblCompletedOrders;
+    private DefaultTableModel bestSellersModel;
+    private JTable tblBestSellers;
+    private JButton btnRefreshDashboard;
 
     // Colors
     private static final Color ACCENT      = new Color(79, 70, 229);
@@ -101,11 +106,13 @@ public class AdminFrame extends JFrame {
         tabbedPane.setBorder(new EmptyBorder(0, 0, 0, 0));
         createMenuTab();
         createOrdersTab();
+        createDashboardTab();
         main.add(tabbedPane, BorderLayout.CENTER);
 
         add(main);
         loadMenuData();
         loadOrdersData();
+        loadDashboardData();
     }
 
     private void createMenuTab() {
@@ -505,16 +512,32 @@ public class AdminFrame extends JFrame {
         g.gridx = 1;
         infoPanel.add(infoValue(selectedOrder.getPaymentMethod()), g);
 
-        // Row: Total
+        // Row: Subtotal
         g.gridx = 0; g.gridy = 4;
-        infoPanel.add(infoLabel("Total Bayar"), g);
+        infoPanel.add(infoLabel("Subtotal Menu"), g);
+        double originalSubtotal = selectedOrder.getTotalPrice() + selectedOrder.getDiscountAmount();
+        g.gridx = 1;
+        infoPanel.add(infoValue("Rp " + String.format("%,.0f", originalSubtotal)), g);
+
+        // Row: Diskon
+        g.gridx = 0; g.gridy = 5;
+        infoPanel.add(infoLabel("Potongan Diskon"), g);
+        JLabel lblDiscount = infoValue("-Rp " + String.format("%,.0f", selectedOrder.getDiscountAmount()));
+        lblDiscount.setForeground(DANGER);
+        g.gridx = 1;
+        infoPanel.add(lblDiscount, g);
+
+        // Row: Total Bayar
+        g.gridx = 0; g.gridy = 6;
+        infoPanel.add(infoLabel("Total Bayar Akhir"), g);
         JLabel lblTotalVal = infoValue("Rp " + String.format("%,.0f", selectedOrder.getTotalPrice()));
         lblTotalVal.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblTotalVal.setForeground(ACCENT);
         g.gridx = 1;
         infoPanel.add(lblTotalVal, g);
-
+ 
         // Row: Waktu Order
-        g.gridx = 0; g.gridy = 5;
+        g.gridx = 0; g.gridy = 7;
         infoPanel.add(infoLabel("Waktu Order"), g);
         g.gridx = 1;
         String orderDate = selectedOrder.getOrderDate();
@@ -679,5 +702,106 @@ public class AdminFrame extends JFrame {
 
         receiptDialog.setContentPane(pnlContent);
         receiptDialog.setVisible(true);
+    }
+ 
+    private void createDashboardTab() {
+        JPanel panel = new JPanel(new BorderLayout(0, 16));
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+        panel.setBackground(BG);
+ 
+        // KPIs Panel (Grid layout for cards)
+        JPanel kpiPanel = new JPanel(new GridLayout(1, 3, 16, 0));
+        kpiPanel.setOpaque(false);
+ 
+        // 1. Total Revenue Card
+        JPanel cardRevenue = wrapCard(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0; c.gridx = 0;
+        c.gridy = 0;
+        JLabel lblRevTitle = fieldLabel("TOTAL OMSET");
+        lblRevTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        cardRevenue.add(lblRevTitle, c);
+        lblTotalRevenue = new JLabel("Rp 0");
+        lblTotalRevenue.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTotalRevenue.setForeground(SUCCESS);
+        c.gridy = 1; c.insets = new Insets(6, 0, 0, 0);
+        cardRevenue.add(lblTotalRevenue, c);
+ 
+        // 2. Completed Orders Card
+        JPanel cardOrders = wrapCard(new GridBagLayout());
+        c.gridy = 0; c.insets = new Insets(0, 0, 0, 0);
+        JLabel lblOrdTitle = fieldLabel("TOTAL TRANSAKSI");
+        lblOrdTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        cardOrders.add(lblOrdTitle, c);
+        lblCompletedOrders = new JLabel("0");
+        lblCompletedOrders.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblCompletedOrders.setForeground(ACCENT);
+        c.gridy = 1; c.insets = new Insets(6, 0, 0, 0);
+        cardOrders.add(lblCompletedOrders, c);
+ 
+        // 3. Total Discounts Card
+        JPanel cardDiscounts = wrapCard(new GridBagLayout());
+        c.gridy = 0; c.insets = new Insets(0, 0, 0, 0);
+        JLabel lblDiscTitle = fieldLabel("TOTAL DISKON DIBERIKAN");
+        lblDiscTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        cardDiscounts.add(lblDiscTitle, c);
+        lblTotalDiscounts = new JLabel("Rp 0");
+        lblTotalDiscounts.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTotalDiscounts.setForeground(WARNING);
+        c.gridy = 1; c.insets = new Insets(6, 0, 0, 0);
+        cardDiscounts.add(lblTotalDiscounts, c);
+ 
+        kpiPanel.add(cardRevenue);
+        kpiPanel.add(cardOrders);
+        kpiPanel.add(cardDiscounts);
+        panel.add(kpiPanel, BorderLayout.NORTH);
+ 
+        // Center: Best Sellers Table
+        JPanel tableCard = wrapCard(new BorderLayout(0, 10));
+        JLabel lblBestTitle = new JLabel("Menu Paling Laris (Top 5)");
+        lblBestTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblBestTitle.setForeground(TEXT_DARK);
+        tableCard.add(lblBestTitle, BorderLayout.NORTH);
+ 
+        String[] cols = {"Nama Menu", "Jumlah Terjual"};
+        bestSellersModel = new DefaultTableModel(cols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tblBestSellers = new JTable(bestSellersModel);
+        styleTable(tblBestSellers);
+        
+        // Align quantity column to center
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        tblBestSellers.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+ 
+        tableCard.add(new JScrollPane(tblBestSellers), BorderLayout.CENTER);
+        panel.add(tableCard, BorderLayout.CENTER);
+ 
+        // Bottom: Refresh button
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        bottom.setOpaque(false);
+        btnRefreshDashboard = flatButton("Refresh Laporan", ACCENT, ACCENT_HOVER);
+        btnRefreshDashboard.setPreferredSize(new Dimension(140, 36));
+        btnRefreshDashboard.addActionListener(e -> loadDashboardData());
+        bottom.add(btnRefreshDashboard);
+        panel.add(bottom, BorderLayout.SOUTH);
+ 
+        tabbedPane.addTab("Laporan Penjualan", panel);
+    }
+ 
+    private void loadDashboardData() {
+        model.SalesReport report = orderRepository.getSalesReport();
+        lblTotalRevenue.setText("Rp " + String.format("%,.0f", report.getTotalRevenue()));
+        lblCompletedOrders.setText(String.valueOf(report.getCompletedOrdersCount()));
+        lblTotalDiscounts.setText("Rp " + String.format("%,.0f", report.getTotalDiscounts()));
+ 
+        bestSellersModel.setRowCount(0);
+        for (model.SalesReport.BestSeller bs : report.getTopSellingItems()) {
+            bestSellersModel.addRow(new Object[]{
+                bs.getName(),
+                bs.getQuantity() + " porsi"
+            });
+        }
     }
 }

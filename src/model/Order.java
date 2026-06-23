@@ -11,14 +11,22 @@ public class Order {
     private String paymentMethod; // "CASH" or "E-WALLET"
     private String status; // "PENDING", "COMPLETED", "CANCELLED"
     private List<OrderItem> orderItems;
+    private double discountAmount;
+    private String promoCode;
 
     public Order(int id, String customerName, String orderDate, double totalPrice, String paymentMethod, String status) {
+        this(id, customerName, orderDate, totalPrice, paymentMethod, status, 0.0, "");
+    }
+
+    public Order(int id, String customerName, String orderDate, double totalPrice, String paymentMethod, String status, double discountAmount, String promoCode) {
         this.id = id;
         this.customerName = customerName;
         this.orderDate = orderDate;
         this.totalPrice = totalPrice;
         this.paymentMethod = paymentMethod;
         this.status = status;
+        this.discountAmount = discountAmount;
+        this.promoCode = promoCode;
         this.orderItems = new ArrayList<>();
     }
 
@@ -81,5 +89,21 @@ public class Order {
 
     public void addOrderItem(OrderItem item) {
         this.orderItems.add(item);
+    }
+
+    public double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public String getPromoCode() {
+        return promoCode;
+    }
+
+    public void setPromoCode(String promoCode) {
+        this.promoCode = promoCode;
     }
 }

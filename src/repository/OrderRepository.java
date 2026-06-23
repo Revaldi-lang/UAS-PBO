@@ -18,7 +18,7 @@ import java.util.List;
 public class OrderRepository {
 
     public boolean saveOrder(Order order) {
-        String insertOrder = "INSERT INTO orders (customer_name, total_price, payment_method, status) VALUES (?, ?, ?, ?);";
+        String insertOrder = "INSERT INTO orders (customer_name, total_price, payment_method, status, discount_amount, promo_code) VALUES (?, ?, ?, ?, ?, ?);";
         String insertOrderItem = "INSERT INTO order_items (order_id, menu_item_id, quantity, subtotal) VALUES (?, ?, ?, ?);";
         
         Connection conn = null;
@@ -32,6 +32,8 @@ public class OrderRepository {
                 pstmtOrder.setDouble(2, order.getTotalPrice());
                 pstmtOrder.setString(3, order.getPaymentMethod());
                 pstmtOrder.setString(4, order.getStatus());
+                pstmtOrder.setDouble(5, order.getDiscountAmount());
+                pstmtOrder.setString(6, order.getPromoCode());
                 
                 int affectedRows = pstmtOrder.executeUpdate();
                 if (affectedRows == 0) {
@@ -116,8 +118,10 @@ public class OrderRepository {
                     double total = rsOrder.getDouble("total_price");
                     String payMethod = rsOrder.getString("payment_method");
                     String status = rsOrder.getString("status");
+                    double discount = rsOrder.getDouble("discount_amount");
+                    String promo = rsOrder.getString("promo_code");
 
-                    Order order = new Order(orderId, name, date, total, payMethod, status);
+                    Order order = new Order(orderId, name, date, total, payMethod, status, discount, promo != null ? promo : "");
                     
                     // Ambil detail items untuk order ini
                     List<OrderItem> items = getOrderItems(orderId, conn);
@@ -177,5 +181,55 @@ public class OrderRepository {
             System.err.println("Error update order status: " + e.getMessage());
             return false;
         }
+    }
+ 
+    public model.SalesReport getSalesReport() {
+        double totalRevenue = 0.0;
+        double totalDiscounts = 0.0;
+        int completedOrdersCount = 0;
+        java.util.List<model.SalesReport.BestSeller> bestSellers = new java.util.ArrayList<>();
+ 
+        String sqlSummary = "SELECT "
+                + "SUM(total_price) AS revenue, "
+                + "SUM(discount_amount) AS discounts, "
+                + "COUNT(*) AS orders_count "
+                + "FROM orders "
+                + "WHERE status = 'COMPLETED';";
+ 
+        String sqlBestSellers = "SELECT mi.name, SUM(oi.quantity) AS qty "
+                + "FROM order_items oi "
+                + "JOIN orders o ON oi.order_id = o.id "
+                + "JOIN menu_items mi ON oi.menu_item_id = mi.id "
+                + "WHERE o.status = 'COMPLETED' "
+                + "GROUP BY mi.id, mi.name "
+                + "ORDER BY qty DESC "
+                + "LIMIT 5;";
+ 
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            // 1. Get overall metrics
+            try (PreparedStatement pstmtSummary = conn.prepareStatement(sqlSummary);
+                 ResultSet rsSummary = pstmtSummary.executeQuery()) {
+                if (rsSummary.next()) {
+                    totalRevenue = rsSummary.getDouble("revenue");
+                    totalDiscounts = rsSummary.getDouble("discounts");
+                    completedOrdersCount = rsSummary.getInt("orders_count");
+                }
+            }
+ 
+            // 2. Get top selling items
+            try (PreparedStatement pstmtBest = conn.prepareStatement(sqlBestSellers);
+                 ResultSet rsBest = pstmtBest.executeQuery()) {
+                while (rsBest.next()) {
+                    bestSellers.add(new model.SalesReport.BestSeller(
+                        rsBest.getString("name"),
+                        rsBest.getInt("qty")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Gagal memuat laporan penjualan: " + e.getMessage());
+        }
+ 
+        return new model.SalesReport(totalRevenue, totalDiscounts, completedOrdersCount, bestSellers);
     }
 }

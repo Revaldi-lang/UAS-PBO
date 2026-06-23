@@ -75,6 +75,27 @@ public class DatabaseConfig {
                     + ");";
             stmt.execute(createOrderItemsTable);
 
+            // 5. Buat Tabel Promos
+            String createPromosTable = "CREATE TABLE IF NOT EXISTS promos ("
+                    + "code TEXT PRIMARY KEY,"
+                    + "discount_percent REAL NOT NULL,"
+                    + "max_discount REAL NOT NULL,"
+                    + "min_purchase REAL NOT NULL"
+                    + ");";
+            stmt.execute(createPromosTable);
+
+            // Migrasi kolom tabel orders
+            try {
+                stmt.execute("ALTER TABLE orders ADD COLUMN discount_amount REAL DEFAULT 0;");
+            } catch (SQLException e) {
+                // Kolom mungkin sudah ada
+            }
+            try {
+                stmt.execute("ALTER TABLE orders ADD COLUMN promo_code TEXT;");
+            } catch (SQLException e) {
+                // Kolom mungkin sudah ada
+            }
+
             // Seed data default jika tabel kosong
             seedDefaultData(stmt);
 
@@ -106,6 +127,16 @@ public class DatabaseConfig {
             stmt.execute("INSERT INTO menu_items (name, price, category, detail) VALUES ('Es Jeruk Peras', 8000, 'BEVERAGE', 'Large / Es');");
             stmt.execute("INSERT INTO menu_items (name, price, category, detail) VALUES ('Kopi Susu Gula Aren', 15000, 'BEVERAGE', 'Medium / Hangat');");
             System.out.println("Default menu items seeded.");
+        }
+        rs.close();
+
+        // Cek apakah promo sudah ada
+        rs = stmt.executeQuery("SELECT COUNT(*) FROM promos;");
+        if (rs.next() && rs.getInt(1) == 0) {
+            stmt.execute("INSERT INTO promos (code, discount_percent, max_discount, min_purchase) VALUES ('OMBUDI10', 10.0, 15000.0, 30000.0);");
+            stmt.execute("INSERT INTO promos (code, discount_percent, max_discount, min_purchase) VALUES ('MAKANHEMAT', 20.0, 10000.0, 20000.0);");
+            stmt.execute("INSERT INTO promos (code, discount_percent, max_discount, min_purchase) VALUES ('GRANDOPENING', 15.0, 25000.0, 50000.0);");
+            System.out.println("Default promos seeded.");
         }
         rs.close();
     }

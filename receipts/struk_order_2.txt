@@ -1,5 +1,5 @@
 ==========================================
-             FOOD ORDER SYSTEM            
+            WARUNG OM BUDI                 
 ==========================================
 ID Pesanan   : #2
 Pelanggan    : danish

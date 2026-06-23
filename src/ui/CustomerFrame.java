@@ -53,6 +53,16 @@ public class CustomerFrame extends JFrame {
     private DefaultTableModel historyModel;
     private JButton btnRefreshHistory;
 
+    private JLabel lblDiscountVal;
+    private JLabel lblFinalTotal;
+    private JTextField txtPromoCode;
+    private JButton btnApplyPromo;
+    private JLabel lblPromoStatus;
+    private repository.PromoRepository promoRepository;
+    private model.Promo appliedPromo = null;
+    private double discountAmount = 0.0;
+    private double finalTotalPrice = 0.0;
+
     // Colors
     private static final Color ACCENT      = new Color(79, 70, 229);
     private static final Color ACCENT_HOVER = new Color(67, 56, 202);
@@ -72,6 +82,7 @@ public class CustomerFrame extends JFrame {
         this.customer = customer;
         this.menuRepository = new MenuRepository();
         this.orderRepository = new OrderRepository();
+        this.promoRepository = new repository.PromoRepository();
         this.cartList = new ArrayList<>();
         initUI();
     }
@@ -212,27 +223,66 @@ public class CustomerFrame extends JFrame {
         sumTitle.setForeground(TEXT_DARK);
         summaryCard.add(sumTitle, g);
 
-        // Total
+        // Subtotal (Original Total)
         g.gridy = 1; g.insets = new Insets(0, 0, 4, 0);
-        summaryCard.add(fieldLabel("Total Harga"), g);
+        summaryCard.add(fieldLabel("Subtotal Menu"), g);
         lblTotal = new JLabel("Rp 0");
-        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblTotal.setForeground(ACCENT);
-        g.gridy = 2; g.insets = new Insets(0, 0, 20, 0);
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTotal.setForeground(TEXT_DARK);
+        g.gridy = 2; g.insets = new Insets(0, 0, 8, 0);
         summaryCard.add(lblTotal, g);
+
+        // Diskon
+        g.gridy = 3; g.insets = new Insets(0, 0, 4, 0);
+        summaryCard.add(fieldLabel("Diskon Kupon"), g);
+        lblDiscountVal = new JLabel("Rp 0");
+        lblDiscountVal.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblDiscountVal.setForeground(DANGER);
+        g.gridy = 4; g.insets = new Insets(0, 0, 8, 0);
+        summaryCard.add(lblDiscountVal, g);
+
+        // Total Bayar Akhir
+        g.gridy = 5; g.insets = new Insets(0, 0, 4, 0);
+        summaryCard.add(fieldLabel("Total Bayar Akhir"), g);
+        lblFinalTotal = new JLabel("Rp 0");
+        lblFinalTotal.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblFinalTotal.setForeground(ACCENT);
+        g.gridy = 6; g.insets = new Insets(0, 0, 14, 0);
+        summaryCard.add(lblFinalTotal, g);
+
+        // Coupon input
+        g.gridy = 7; g.insets = new Insets(0, 0, 4, 0);
+        summaryCard.add(fieldLabel("Kode Promo (Kupon)"), g);
+        JPanel pnlCoupon = new JPanel(new BorderLayout(8, 0));
+        pnlCoupon.setOpaque(false);
+        txtPromoCode = new JTextField();
+        txtPromoCode.setPreferredSize(new Dimension(120, 32));
+        txtPromoCode.putClientProperty("JTextField.placeholderText", "Masukkan kode");
+        btnApplyPromo = flatButton("Pakai", ACCENT, ACCENT_HOVER);
+        btnApplyPromo.setPreferredSize(new Dimension(75, 32));
+        pnlCoupon.add(txtPromoCode, BorderLayout.CENTER);
+        pnlCoupon.add(btnApplyPromo, BorderLayout.EAST);
+        g.gridy = 8; g.insets = new Insets(0, 0, 4, 0);
+        summaryCard.add(pnlCoupon, g);
+
+        lblPromoStatus = new JLabel("");
+        lblPromoStatus.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblPromoStatus.setForeground(SUCCESS);
+        g.gridy = 9; g.insets = new Insets(0, 0, 12, 0);
+        summaryCard.add(lblPromoStatus, g);
 
         // Separator
         JSeparator sep = new JSeparator();
         sep.setForeground(BORDER);
-        g.gridy = 3; g.insets = new Insets(0, 0, 16, 0);
+        g.gridy = 10; g.insets = new Insets(0, 0, 16, 0);
         summaryCard.add(sep, g);
 
         // Payment method
-        g.gridy = 4; g.insets = new Insets(0, 0, 4, 0);
+        g.gridy = 11; g.insets = new Insets(0, 0, 4, 0);
         summaryCard.add(fieldLabel("Metode Bayar"), g);
         cbPaymentMethod = new JComboBox<>(new String[]{"CASH", "E-WALLET", "QRIS"});
         cbPaymentMethod.setPreferredSize(new Dimension(0, 34));
-        g.gridy = 5; g.insets = new Insets(0, 0, 14, 0);
+        g.gridy = 12; g.insets = new Insets(0, 0, 14, 0);
         summaryCard.add(cbPaymentMethod, g);
 
         // Dynamic payment input
@@ -298,17 +348,17 @@ public class CustomerFrame extends JFrame {
         cardPanel.add(pnlEWallet, "E-WALLET");
         cardPanel.add(pnlQRIS, "QRIS");
 
-        g.gridy = 6; g.insets = new Insets(0, 0, 20, 0);
+        g.gridy = 13; g.insets = new Insets(0, 0, 20, 0);
         summaryCard.add(cardPanel, g);
 
         // Checkout button
         btnCheckout = flatButton("Bayar Sekarang", ACCENT, ACCENT_HOVER);
         btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnCheckout.setPreferredSize(new Dimension(0, 42));
-        g.gridy = 7; g.insets = new Insets(0, 0, 0, 0);
+        g.gridy = 14; g.insets = new Insets(0, 0, 0, 0);
         summaryCard.add(btnCheckout, g);
 
-        g.gridy = 8; g.weighty = 1.0;
+        g.gridy = 15; g.weighty = 1.0;
         summaryCard.add(Box.createGlue(), g);
 
         panel.add(summaryCard, BorderLayout.EAST);
@@ -317,6 +367,7 @@ public class CustomerFrame extends JFrame {
         cbPaymentMethod.addActionListener(e -> cardLayout.show(cardPanel, cbPaymentMethod.getSelectedItem().toString()));
         btnRemoveItem.addActionListener(e -> handleRemoveCartItem());
         btnCheckout.addActionListener(e -> handleCheckout());
+        btnApplyPromo.addActionListener(e -> handleApplyPromo());
     }
 
     private void createHistoryTab() {
@@ -463,7 +514,32 @@ public class CustomerFrame extends JFrame {
                     item.getQuantity(), sub
             });
         }
+        
+        // Dynamic promo calculation
+        if (appliedPromo != null) {
+            if (totalCartPrice >= appliedPromo.getMinPurchase()) {
+                discountAmount = totalCartPrice * (appliedPromo.getDiscountPercent() / 100.0);
+                if (discountAmount > appliedPromo.getMaxDiscount()) {
+                    discountAmount = appliedPromo.getMaxDiscount();
+                }
+                lblPromoStatus.setText("Promo diterapkan: " + appliedPromo.getCode());
+                lblPromoStatus.setForeground(SUCCESS);
+            } else {
+                appliedPromo = null;
+                discountAmount = 0.0;
+                lblPromoStatus.setText("Kupon dilepas (total belanja kurang)");
+                lblPromoStatus.setForeground(DANGER);
+            }
+        } else {
+            discountAmount = 0.0;
+        }
+
+        finalTotalPrice = totalCartPrice - discountAmount;
+        if (finalTotalPrice < 0) finalTotalPrice = 0.0;
+
         lblTotal.setText("Rp " + String.format("%,.0f", totalCartPrice));
+        lblDiscountVal.setText("Rp " + String.format("%,.0f", discountAmount));
+        lblFinalTotal.setText("Rp " + String.format("%,.0f", finalTotalPrice));
     }
 
     private void handleRemoveCartItem() {
@@ -509,13 +585,13 @@ public class CustomerFrame extends JFrame {
             paymentStrategy = new QRISPayment();
         }
 
-        String receipt = paymentStrategy.processPayment(totalCartPrice);
+        String receipt = paymentStrategy.processPayment(finalTotalPrice);
         if (receipt.startsWith("Pembayaran Gagal")) {
             JOptionPane.showMessageDialog(this, receipt, "Gagal", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        Order order = new Order(0, customer.getUsername(), "", totalCartPrice, paymentMethod, "PENDING");
+        Order order = new Order(0, customer.getUsername(), "", finalTotalPrice, paymentMethod, "PENDING", discountAmount, appliedPromo != null ? appliedPromo.getCode() : "");
         for (OrderItem item : cartList) order.addOrderItem(item);
 
         if (orderRepository.saveOrder(order)) {
@@ -523,6 +599,10 @@ public class CustomerFrame extends JFrame {
                     receipt + "\n\nPesanan direkam dengan status PENDING.\nTunggu konfirmasi admin.",
                     "Transaksi Berhasil", JOptionPane.INFORMATION_MESSAGE);
             cartList.clear();
+            appliedPromo = null;
+            discountAmount = 0.0;
+            txtPromoCode.setText("");
+            lblPromoStatus.setText("");
             updateCartView();
             txtCashAmount.setText("");
             txtPhoneNumber.setText("");
@@ -531,6 +611,40 @@ public class CustomerFrame extends JFrame {
         } else {
             JOptionPane.showMessageDialog(this, "Gagal memproses pesanan.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void handleApplyPromo() {
+        String code = txtPromoCode.getText().trim();
+        if (code.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Masukkan kode promo!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (totalCartPrice <= 0) {
+            JOptionPane.showMessageDialog(this, "Keranjang belanja kosong!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        model.Promo promo = promoRepository.getPromoByCode(code);
+        if (promo == null) {
+            lblPromoStatus.setText("Kode promo tidak valid!");
+            lblPromoStatus.setForeground(DANGER);
+            appliedPromo = null;
+            discountAmount = 0.0;
+            updateCartView();
+            return;
+        }
+        if (totalCartPrice < promo.getMinPurchase()) {
+            lblPromoStatus.setText("Min. belanja Rp" + String.format("%,.0f", promo.getMinPurchase()));
+            lblPromoStatus.setForeground(DANGER);
+            appliedPromo = null;
+            discountAmount = 0.0;
+            updateCartView();
+            return;
+        }
+        
+        appliedPromo = promo;
+        lblPromoStatus.setText("Promo diterapkan: " + promo.getCode());
+        lblPromoStatus.setForeground(SUCCESS);
+        updateCartView();
     }
 
     private void loadHistoryData() {
