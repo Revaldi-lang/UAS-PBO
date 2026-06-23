@@ -7,6 +7,7 @@ import model.User;
 import payment.CashPayment;
 import payment.EWalletPayment;
 import payment.Payment;
+import payment.QRISPayment;
 import repository.MenuRepository;
 import repository.OrderRepository;
 
@@ -229,7 +230,7 @@ public class CustomerFrame extends JFrame {
         // Payment method
         g.gridy = 4; g.insets = new Insets(0, 0, 4, 0);
         summaryCard.add(fieldLabel("Metode Bayar"), g);
-        cbPaymentMethod = new JComboBox<>(new String[]{"CASH", "E-WALLET"});
+        cbPaymentMethod = new JComboBox<>(new String[]{"CASH", "E-WALLET", "QRIS"});
         cbPaymentMethod.setPreferredSize(new Dimension(0, 34));
         g.gridy = 5; g.insets = new Insets(0, 0, 14, 0);
         summaryCard.add(cbPaymentMethod, g);
@@ -269,8 +270,33 @@ public class CustomerFrame extends JFrame {
         eg.gridy = 3; eg.insets = new Insets(0, 0, 0, 0);
         pnlEWallet.add(txtPhoneNumber, eg);
 
+        JPanel pnlQRIS = new JPanel(new GridBagLayout());
+        pnlQRIS.setOpaque(false);
+        GridBagConstraints qg = new GridBagConstraints();
+        qg.fill = GridBagConstraints.HORIZONTAL; qg.weightx = 1.0; qg.gridx = 0;
+        qg.gridy = 0; qg.insets = new Insets(0, 0, 4, 0);
+        JLabel lblScan = new JLabel("Scan Kode QRIS di bawah ini:");
+        lblScan.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblScan.setForeground(TEXT_DARK);
+        pnlQRIS.add(lblScan, qg);
+
+        JLabel lblBarcode = new JLabel();
+        lblBarcode.setHorizontalAlignment(JLabel.CENTER);
+        java.io.File qrFile = new java.io.File("src/resources/qris_code.jpg");
+        if (qrFile.exists()) {
+            ImageIcon qrIcon = new ImageIcon(qrFile.getAbsolutePath());
+            Image img = qrIcon.getImage().getScaledInstance(140, 140, Image.SCALE_SMOOTH);
+            lblBarcode.setIcon(new ImageIcon(img));
+        } else {
+            lblBarcode.setText("[Gambar QRIS tidak ditemukan]");
+            lblBarcode.setForeground(DANGER);
+        }
+        qg.gridy = 1; qg.insets = new Insets(4, 0, 0, 0);
+        pnlQRIS.add(lblBarcode, qg);
+
         cardPanel.add(pnlCash, "CASH");
         cardPanel.add(pnlEWallet, "E-WALLET");
+        cardPanel.add(pnlQRIS, "QRIS");
 
         g.gridy = 6; g.insets = new Insets(0, 0, 20, 0);
         summaryCard.add(cardPanel, g);
@@ -471,7 +497,7 @@ public class CustomerFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Jumlah harus berupa angka!", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-        } else {
+        } else if ("E-WALLET".equals(paymentMethod)) {
             String provider = cbWalletProvider.getSelectedItem().toString();
             String phone = txtPhoneNumber.getText().trim();
             if (phone.isEmpty()) {
@@ -479,6 +505,8 @@ public class CustomerFrame extends JFrame {
                 return;
             }
             paymentStrategy = new EWalletPayment(provider, phone);
+        } else if ("QRIS".equals(paymentMethod)) {
+            paymentStrategy = new QRISPayment();
         }
 
         String receipt = paymentStrategy.processPayment(totalCartPrice);

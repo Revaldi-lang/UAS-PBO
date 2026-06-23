@@ -113,13 +113,11 @@ public class OrderRepository {
                     int orderId = rsOrder.getInt("id");
                     String name = rsOrder.getString("customer_name");
                     String date = rsOrder.getString("order_date");
-                    String completedDate = rsOrder.getString("completed_date");
                     double total = rsOrder.getDouble("total_price");
                     String payMethod = rsOrder.getString("payment_method");
                     String status = rsOrder.getString("status");
 
                     Order order = new Order(orderId, name, date, total, payMethod, status);
-                    order.setCompletedDate(completedDate);
                     
                     // Ambil detail items untuk order ini
                     List<OrderItem> items = getOrderItems(orderId, conn);
@@ -167,12 +165,7 @@ public class OrderRepository {
     }
 
     public boolean updateOrderStatus(int orderId, String status) {
-        String sql;
-        if ("COMPLETED".equals(status)) {
-            sql = "UPDATE orders SET status = ?, completed_date = CURRENT_TIMESTAMP WHERE id = ?;";
-        } else {
-            sql = "UPDATE orders SET status = ? WHERE id = ?;";
-        }
+        String sql = "UPDATE orders SET status = ? WHERE id = ?;";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             

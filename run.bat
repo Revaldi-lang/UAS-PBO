@@ -34,7 +34,7 @@ REM 2. Buat folder 'bin' jika belum ada
 if not exist bin mkdir bin
 
 echo [1/2] Melakukan Kompilasi Source Code...
-"!JAVAC_CMD!" -cp "library/*" -d bin src/database/DatabaseConfig.java src/model/User.java src/model/Admin.java src/model/Customer.java src/model/MenuItem.java src/model/Food.java src/model/Beverage.java src/model/OrderItem.java src/model/Order.java src/payment/Payment.java src/payment/CashPayment.java src/payment/EWalletPayment.java src/repository/UserRepository.java src/repository/MenuRepository.java src/repository/OrderRepository.java src/ui/LoginFrame.java src/ui/AdminFrame.java src/ui/CustomerFrame.java
+"!JAVAC_CMD!" -cp "library/*" -d bin src/database/DatabaseConfig.java src/model/User.java src/model/Admin.java src/model/Customer.java src/model/MenuItem.java src/model/Food.java src/model/Beverage.java src/model/OrderItem.java src/model/Order.java src/payment/Payment.java src/payment/CashPayment.java src/payment/EWalletPayment.java src/payment/QRISPayment.java src/repository/UserRepository.java src/repository/MenuRepository.java src/repository/OrderRepository.java src/ui/LoginFrame.java src/ui/AdminFrame.java src/ui/CustomerFrame.java
 if %errorlevel% neq 0 (
     echo.
     echo [ERROR] Kompilasi Gagal! Silakan cek error di atas.

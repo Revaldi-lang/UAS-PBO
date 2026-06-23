@@ -7,7 +7,6 @@ public class Order {
     private int id;
     private String customerName;
     private String orderDate;
-    private String completedDate;
     private double totalPrice;
     private String paymentMethod; // "CASH" or "E-WALLET"
     private String status; // "PENDING", "COMPLETED", "CANCELLED"
@@ -71,13 +70,6 @@ public class Order {
         this.status = status;
     }
 
-    public String getCompletedDate() {
-        return completedDate;
-    }
-
-    public void setCompletedDate(String completedDate) {
-        this.completedDate = completedDate;
-    }
 
     public List<OrderItem> getOrderItems() {
         return orderItems;

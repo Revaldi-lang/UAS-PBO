@@ -516,13 +516,6 @@ public class AdminFrame extends JFrame {
         String orderDate = selectedOrder.getOrderDate();
         infoPanel.add(infoValue(orderDate != null ? orderDate : "-"), g);
 
-        // Row: Waktu Selesai
-        g.gridx = 0; g.gridy = 6;
-        infoPanel.add(infoLabel("Waktu Selesai"), g);
-        g.gridx = 1;
-        String completedDate = selectedOrder.getCompletedDate();
-        infoPanel.add(infoValue(completedDate != null ? completedDate : "Belum selesai"), g);
-
         content.add(infoPanel, BorderLayout.NORTH);
 
         // ---- Center: Items table ----
