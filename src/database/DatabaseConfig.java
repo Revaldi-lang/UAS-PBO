@@ -57,11 +57,19 @@ public class DatabaseConfig {
                     + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + "customer_name TEXT NOT NULL,"
                     + "order_date DATETIME DEFAULT CURRENT_TIMESTAMP,"
+                    + "completed_date DATETIME,"
                     + "total_price REAL NOT NULL,"
                     + "payment_method TEXT NOT NULL," // CASH or E-WALLET
                     + "status TEXT NOT NULL DEFAULT 'PENDING'" // PENDING or COMPLETED
                     + ");";
             stmt.execute(createOrdersTable);
+
+            // Migrasi kolom completed_date jika database lama sudah terbentuk
+            try {
+                stmt.execute("ALTER TABLE orders ADD COLUMN completed_date DATETIME;");
+            } catch (SQLException e) {
+                // Kolom mungkin sudah ada, abaikan error
+            }
 
             // 4. Buat Tabel Order Items
             String createOrderItemsTable = "CREATE TABLE IF NOT EXISTS order_items ("

@@ -4,6 +4,7 @@ import model.Beverage;
 import model.Food;
 import model.MenuItem;
 import model.Order;
+import model.OrderItem;
 import model.User;
 import repository.MenuRepository;
 import repository.OrderRepository;
@@ -31,7 +32,7 @@ public class AdminFrame extends JFrame {
 
     private JTable tblOrders;
     private DefaultTableModel orderModel;
-    private JButton btnCompleteOrder, btnRefreshOrders;
+    private JButton btnCompleteOrder, btnRefreshOrders, btnDetailOrder;
 
     // Colors
     private static final Color ACCENT      = new Color(79, 70, 229);
@@ -251,16 +252,20 @@ public class AdminFrame extends JFrame {
 
         JPanel ctrl = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         ctrl.setOpaque(false);
+        btnDetailOrder = flatButton("Lihat Detail", ACCENT, ACCENT_HOVER);
+        btnDetailOrder.setPreferredSize(new Dimension(130, 36));
         btnCompleteOrder = flatButton("Selesaikan Pesanan", SUCCESS, SUCCESS_H);
         btnCompleteOrder.setPreferredSize(new Dimension(180, 36));
         btnRefreshOrders = flatButton("Refresh", NEUTRAL, NEUTRAL_H);
         btnRefreshOrders.setPreferredSize(new Dimension(100, 36));
+        ctrl.add(btnDetailOrder);
         ctrl.add(btnCompleteOrder);
         ctrl.add(btnRefreshOrders);
         panel.add(ctrl, BorderLayout.SOUTH);
 
         tabbedPane.addTab("Pesanan Masuk", panel);
 
+        btnDetailOrder.addActionListener(e -> showOrderDetail());
         btnCompleteOrder.addActionListener(e -> handleCompleteOrder());
         btnRefreshOrders.addActionListener(e -> loadOrdersData());
     }
@@ -432,5 +437,142 @@ public class AdminFrame extends JFrame {
         } else {
             JOptionPane.showMessageDialog(this, "Gagal mengubah status.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void showOrderDetail() {
+        int row = tblOrders.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih pesanan dari tabel!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int orderId = (int) orderModel.getValueAt(row, 0);
+
+        // Find the order from repository (it already loads items)
+        List<Order> allOrders = orderRepository.getAllOrders();
+        Order selectedOrder = null;
+        for (Order o : allOrders) {
+            if (o.getId() == orderId) { selectedOrder = o; break; }
+        }
+        if (selectedOrder == null) return;
+
+        // Build the detail dialog
+        JDialog dialog = new JDialog(this, "Detail Pesanan #" + orderId, true);
+        dialog.setSize(520, 460);
+        dialog.setLocationRelativeTo(this);
+        dialog.setResizable(false);
+
+        JPanel content = new JPanel(new BorderLayout(0, 16));
+        content.setBackground(Color.WHITE);
+        content.setBorder(new EmptyBorder(20, 24, 20, 24));
+
+        // ---- Top: Order info ----
+        JPanel infoPanel = new JPanel(new GridBagLayout());
+        infoPanel.setOpaque(false);
+        GridBagConstraints g = new GridBagConstraints();
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.insets = new Insets(3, 0, 3, 12);
+        g.anchor = GridBagConstraints.WEST;
+
+        JLabel dlgTitle = new JLabel("Detail Pesanan #" + orderId);
+        dlgTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        dlgTitle.setForeground(TEXT_DARK);
+        g.gridx = 0; g.gridy = 0; g.gridwidth = 2; g.insets = new Insets(0, 0, 12, 0);
+        infoPanel.add(dlgTitle, g);
+        g.gridwidth = 1;
+
+        // Row: Pelanggan
+        g.gridx = 0; g.gridy = 1; g.insets = new Insets(3, 0, 3, 12);
+        infoPanel.add(infoLabel("Pelanggan"), g);
+        g.gridx = 1;
+        infoPanel.add(infoValue(selectedOrder.getCustomerName()), g);
+
+        // Row: Status
+        g.gridx = 0; g.gridy = 2;
+        infoPanel.add(infoLabel("Status"), g);
+        JLabel lblStatus = infoValue(selectedOrder.getStatus());
+        lblStatus.setForeground("COMPLETED".equals(selectedOrder.getStatus()) ? SUCCESS : WARNING);
+        g.gridx = 1;
+        infoPanel.add(lblStatus, g);
+
+        // Row: Metode Bayar
+        g.gridx = 0; g.gridy = 3;
+        infoPanel.add(infoLabel("Metode Bayar"), g);
+        g.gridx = 1;
+        infoPanel.add(infoValue(selectedOrder.getPaymentMethod()), g);
+
+        // Row: Total
+        g.gridx = 0; g.gridy = 4;
+        infoPanel.add(infoLabel("Total Bayar"), g);
+        JLabel lblTotalVal = infoValue("Rp " + String.format("%,.0f", selectedOrder.getTotalPrice()));
+        lblTotalVal.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        g.gridx = 1;
+        infoPanel.add(lblTotalVal, g);
+
+        // Row: Waktu Order
+        g.gridx = 0; g.gridy = 5;
+        infoPanel.add(infoLabel("Waktu Order"), g);
+        g.gridx = 1;
+        String orderDate = selectedOrder.getOrderDate();
+        infoPanel.add(infoValue(orderDate != null ? orderDate : "-"), g);
+
+        // Row: Waktu Selesai
+        g.gridx = 0; g.gridy = 6;
+        infoPanel.add(infoLabel("Waktu Selesai"), g);
+        g.gridx = 1;
+        String completedDate = selectedOrder.getCompletedDate();
+        infoPanel.add(infoValue(completedDate != null ? completedDate : "Belum selesai"), g);
+
+        content.add(infoPanel, BorderLayout.NORTH);
+
+        // ---- Center: Items table ----
+        String[] itemCols = {"Nama Menu", "Harga", "Qty", "Subtotal"};
+        DefaultTableModel itemModel = new DefaultTableModel(itemCols, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        for (OrderItem oi : selectedOrder.getOrderItems()) {
+            itemModel.addRow(new Object[]{
+                    oi.getMenuItem().getName(),
+                    "Rp " + String.format("%,.0f", oi.getMenuItem().getPrice()),
+                    oi.getQuantity(),
+                    "Rp " + String.format("%,.0f", oi.calculateSubtotal())
+            });
+        }
+        JTable tblItems = new JTable(itemModel);
+        styleTable(tblItems);
+        tblItems.setRowHeight(30);
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(JLabel.CENTER);
+        tblItems.getColumnModel().getColumn(2).setCellRenderer(center);
+
+        JScrollPane scrollItems = new JScrollPane(tblItems);
+        scrollItems.setBorder(BorderFactory.createLineBorder(BORDER, 1));
+        content.add(scrollItems, BorderLayout.CENTER);
+
+        // ---- Bottom: Close button ----
+        JButton btnClose = flatButton("Tutup", NEUTRAL, NEUTRAL_H);
+        btnClose.setPreferredSize(new Dimension(100, 36));
+        btnClose.addActionListener(e -> dialog.dispose());
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 8));
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(btnClose);
+        content.add(bottomPanel, BorderLayout.SOUTH);
+
+        dialog.setContentPane(content);
+        dialog.setVisible(true);
+    }
+
+    private JLabel infoLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setForeground(TEXT_MUTED);
+        return lbl;
+    }
+
+    private JLabel infoValue(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lbl.setForeground(TEXT_DARK);
+        return lbl;
     }
 }
