@@ -3,7 +3,7 @@ bin/
 *.class
 
 # Database file (local DB, generated on runtime)
-# food_ordering.db
+food_ordering.db
 
 # OS-specific temporary files
 .DS_Store
