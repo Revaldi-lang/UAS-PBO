@@ -32,7 +32,7 @@ public class AdminFrame extends JFrame {
 
     private JTable tblOrders;
     private DefaultTableModel orderModel;
-    private JButton btnCompleteOrder, btnRefreshOrders, btnDetailOrder;
+    private JButton btnCompleteOrder, btnRefreshOrders, btnDetailOrder, btnPrintOrder;
 
     // Colors
     private static final Color ACCENT      = new Color(79, 70, 229);
@@ -256,10 +256,13 @@ public class AdminFrame extends JFrame {
         btnDetailOrder.setPreferredSize(new Dimension(130, 36));
         btnCompleteOrder = flatButton("Selesaikan Pesanan", SUCCESS, SUCCESS_H);
         btnCompleteOrder.setPreferredSize(new Dimension(180, 36));
+        btnPrintOrder = flatButton("Cetak Struk", WARNING, WARNING_H);
+        btnPrintOrder.setPreferredSize(new Dimension(130, 36));
         btnRefreshOrders = flatButton("Refresh", NEUTRAL, NEUTRAL_H);
         btnRefreshOrders.setPreferredSize(new Dimension(100, 36));
         ctrl.add(btnDetailOrder);
         ctrl.add(btnCompleteOrder);
+        ctrl.add(btnPrintOrder);
         ctrl.add(btnRefreshOrders);
         panel.add(ctrl, BorderLayout.SOUTH);
 
@@ -267,6 +270,7 @@ public class AdminFrame extends JFrame {
 
         btnDetailOrder.addActionListener(e -> showOrderDetail());
         btnCompleteOrder.addActionListener(e -> handleCompleteOrder());
+        btnPrintOrder.addActionListener(e -> handlePrintOrderFromTable());
         btnRefreshOrders.addActionListener(e -> loadOrdersData());
     }
 
@@ -542,12 +546,19 @@ public class AdminFrame extends JFrame {
         scrollItems.setBorder(BorderFactory.createLineBorder(BORDER, 1));
         content.add(scrollItems, BorderLayout.CENTER);
 
-        // ---- Bottom: Close button ----
+        // ---- Bottom: Print and Close buttons ----
+        JButton btnPrint = flatButton("Cetak Struk", SUCCESS, SUCCESS_H);
+        btnPrint.setPreferredSize(new Dimension(120, 36));
+        final Order orderToPrint = selectedOrder;
+        btnPrint.addActionListener(e -> handlePrintReceipt(orderToPrint));
+
         JButton btnClose = flatButton("Tutup", NEUTRAL, NEUTRAL_H);
         btnClose.setPreferredSize(new Dimension(100, 36));
         btnClose.addActionListener(e -> dialog.dispose());
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 8));
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         bottomPanel.setOpaque(false);
+        bottomPanel.add(btnPrint);
         bottomPanel.add(btnClose);
         content.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -567,5 +578,106 @@ public class AdminFrame extends JFrame {
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lbl.setForeground(TEXT_DARK);
         return lbl;
+    }
+
+    private void handlePrintOrderFromTable() {
+        int row = tblOrders.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih pesanan dari tabel!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int orderId = (int) orderModel.getValueAt(row, 0);
+        List<Order> allOrders = orderRepository.getAllOrders();
+        Order selectedOrder = null;
+        for (Order o : allOrders) {
+            if (o.getId() == orderId) { selectedOrder = o; break; }
+        }
+        if (selectedOrder != null) {
+            handlePrintReceipt(selectedOrder);
+        }
+    }
+
+    private void handlePrintReceipt(Order order) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("==========================================\n");
+        sb.append("            WARUNG OM BUDI                 \n");
+        sb.append("==========================================\n");
+        sb.append(String.format("ID Pesanan   : #%d\n", order.getId()));
+        sb.append(String.format("Pelanggan    : %s\n", order.getCustomerName()));
+        sb.append(String.format("Waktu Order  : %s\n", order.getOrderDate() != null ? order.getOrderDate() : "-"));
+        sb.append(String.format("Metode Bayar : %s\n", order.getPaymentMethod()));
+        sb.append(String.format("Status       : %s\n", order.getStatus()));
+        sb.append("------------------------------------------\n");
+        sb.append(String.format("%-24s %3s %13s\n", "Menu Item", "Qty", "Subtotal"));
+        sb.append("------------------------------------------\n");
+        for (OrderItem oi : order.getOrderItems()) {
+            String name = oi.getMenuItem().getName();
+            if (name.length() > 23) {
+                name = name.substring(0, 20) + "...";
+            }
+            sb.append(String.format("%-24s %3d  Rp%,10.0f\n", 
+                    name, 
+                    oi.getQuantity(), 
+                    oi.calculateSubtotal()));
+        }
+        sb.append("------------------------------------------\n");
+        sb.append(String.format("Total Bayar:                Rp%,10.0f\n", order.getTotalPrice()));
+        sb.append("==========================================\n");
+        sb.append("          Terima Kasih Atas Kunjungan\n");
+        sb.append("                 Anda!\n");
+        sb.append("==========================================\n");
+
+        java.io.File dir = new java.io.File("receipts");
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        java.io.File file = new java.io.File(dir, "struk_order_" + order.getId() + ".txt");
+        try (java.io.FileWriter writer = new java.io.FileWriter(file)) {
+            writer.write(sb.toString());
+        } catch (java.io.IOException e) {
+            JOptionPane.showMessageDialog(this, 
+                    "Gagal menyimpan file struk: " + e.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        // Tampilkan struk langsung di screen
+        JDialog receiptDialog = new JDialog(this, "Struk Order #" + order.getId(), true);
+        receiptDialog.setSize(380, 520);
+        receiptDialog.setLocationRelativeTo(this);
+        receiptDialog.setResizable(false);
+
+        JPanel pnlContent = new JPanel(new BorderLayout(0, 10));
+        pnlContent.setBackground(Color.WHITE);
+        pnlContent.setBorder(new EmptyBorder(16, 16, 16, 16));
+
+        JLabel lblTitle = new JLabel("Pratinjau Struk Belanja", JLabel.CENTER);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTitle.setForeground(TEXT_DARK);
+        pnlContent.add(lblTitle, BorderLayout.NORTH);
+
+        JTextArea taReceipt = new JTextArea(sb.toString());
+        taReceipt.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        taReceipt.setEditable(false);
+        taReceipt.setBackground(new Color(248, 250, 252));
+        taReceipt.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(226, 232, 240)),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        JScrollPane scroll = new JScrollPane(taReceipt);
+        scroll.setBorder(null);
+        pnlContent.add(scroll, BorderLayout.CENTER);
+
+        JButton btnCloseDlg = flatButton("Tutup Struk", NEUTRAL, NEUTRAL_H);
+        btnCloseDlg.setPreferredSize(new Dimension(110, 36));
+        btnCloseDlg.addActionListener(e -> receiptDialog.dispose());
+        
+        JPanel pnlBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        pnlBottom.setOpaque(false);
+        pnlBottom.add(btnCloseDlg);
+        pnlContent.add(pnlBottom, BorderLayout.SOUTH);
+
+        receiptDialog.setContentPane(pnlContent);
+        receiptDialog.setVisible(true);
     }
 }

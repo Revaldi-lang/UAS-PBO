@@ -1,0 +1,19 @@
+==========================================
+             FOOD ORDER SYSTEM            
+==========================================
+ID Pesanan   : #2
+Pelanggan    : danish
+Waktu Order  : 2026-06-23 14:58:50
+Metode Bayar : E-WALLET
+Status       : COMPLETED
+------------------------------------------
+Menu Item                Qty      Subtotal
+------------------------------------------
+Nasi Magelangan            1  Rp    18,000
+Es Teh Manis               1  Rp     6,000
+------------------------------------------
+Total Bayar:                Rp    24,000
+==========================================
+          Terima Kasih Atas Kunjungan
+                 Anda!
+==========================================
