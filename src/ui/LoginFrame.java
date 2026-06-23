@@ -3,6 +3,7 @@ package ui;
 import database.DatabaseConfig;
 import model.User;
 import repository.UserRepository;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -24,71 +25,102 @@ public class LoginFrame extends JFrame {
 
     private void initUI() {
         setTitle("Food Ordering System - Login");
-        setSize(400, 300);
+        setSize(420, 365);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Main Panel with gradient-like solid modern colors
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBackground(new Color(240, 244, 248)); // Soft slate blue-gray
-        mainPanel.setBorder(new EmptyBorder(25, 25, 25, 25));
+        // Main Panel (Background)
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBackground(new Color(242, 245, 249)); // Very soft blue-grey
+
+        // Card Panel (Container for login elements)
+        JPanel cardPanel = new JPanel();
+        cardPanel.setLayout(new BoxLayout(cardPanel, BoxLayout.Y_AXIS));
+        cardPanel.setBackground(Color.WHITE);
+        cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(218, 224, 233), 1, true),
+                new EmptyBorder(25, 30, 25, 30)
+        ));
 
         // Header Label
-        JLabel lblHeader = new JLabel("FOOD ORDER SYSTEM", JLabel.CENTER);
+        JLabel lblHeader = new JLabel("FOOD ORDER SYSTEM");
+        lblHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblHeader.setForeground(new Color(33, 37, 41));
-        lblHeader.setBorder(new EmptyBorder(0, 0, 20, 0));
-        mainPanel.add(lblHeader, BorderLayout.NORTH);
+        lblHeader.setForeground(new Color(230, 74, 25)); // Modern Warm Coral/Orange
 
-        // Form Panel
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridLayout(2, 2, 10, 15));
+        JLabel lblSubHeader = new JLabel("Silakan masuk ke akun Anda");
+        lblSubHeader.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblSubHeader.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSubHeader.setForeground(new Color(120, 130, 140));
+        lblSubHeader.setBorder(new EmptyBorder(5, 0, 20, 0));
+
+        cardPanel.add(lblHeader);
+        cardPanel.add(lblSubHeader);
+
+        // Input Form
+        JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(6, 0, 6, 0);
+        gbc.weightx = 1.0;
 
-        JLabel lblUsername = new JLabel("Username:");
-        lblUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JLabel lblUsername = new JLabel("Username");
+        lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblUsername.setForeground(new Color(80, 90, 100));
         txtUsername = new JTextField();
         txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtUsername.putClientProperty("JTextField.placeholderText", "Masukkan username");
+        txtUsername.setPreferredSize(new Dimension(0, 32));
 
-        JLabel lblPassword = new JLabel("Password:");
-        lblPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JLabel lblPassword = new JLabel("Password");
+        lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblPassword.setForeground(new Color(80, 90, 100));
         txtPassword = new JPasswordField();
         txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPassword.putClientProperty("JTextField.placeholderText", "Masukkan password");
+        txtPassword.setPreferredSize(new Dimension(0, 32));
 
-        formPanel.add(lblUsername);
-        formPanel.add(txtUsername);
-        formPanel.add(lblPassword);
-        formPanel.add(txtPassword);
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(lblUsername, gbc);
+        gbc.gridy = 1;
+        formPanel.add(txtUsername, gbc);
+        gbc.gridy = 2;
+        formPanel.add(lblPassword, gbc);
+        gbc.gridy = 3;
+        formPanel.add(txtPassword, gbc);
 
-        mainPanel.add(formPanel, BorderLayout.CENTER);
+        cardPanel.add(formPanel);
+        cardPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         // Button Panel
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(1, 2, 15, 0));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 12, 0));
         buttonPanel.setOpaque(false);
-        buttonPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
 
         btnLogin = new JButton("Login");
-        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnLogin.setBackground(new Color(40, 167, 69)); // Success Green
-        btnLogin.setForeground(Color.BLACK);
+        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnLogin.setBackground(new Color(230, 74, 25)); // Orange Red Accent
+        btnLogin.setForeground(Color.WHITE);
         btnLogin.setFocusPainted(false);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnLogin.setPreferredSize(new Dimension(0, 36));
 
         btnRegister = new JButton("Register");
-        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnRegister.setBackground(new Color(0, 123, 255)); // Primary Blue
-        btnRegister.setForeground(Color.BLACK);
+        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnRegister.setBackground(new Color(108, 117, 125)); // Secondary Gray
+        btnRegister.setForeground(Color.WHITE);
         btnRegister.setFocusPainted(false);
         btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRegister.setPreferredSize(new Dimension(0, 36));
 
         buttonPanel.add(btnLogin);
         buttonPanel.add(btnRegister);
 
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        cardPanel.add(buttonPanel);
 
+        // Add card to main panel
+        mainPanel.add(cardPanel);
         add(mainPanel);
 
         // Listeners
@@ -151,11 +183,40 @@ public class LoginFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        // Set Look and Feel to System native
+        // Set Look and Feel to FlatLaf
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            FlatLightLaf.setup();
+            
+            // Set global components rounded corners and formatting
+            UIManager.put("Button.arc", 12);
+            UIManager.put("Component.arc", 12);
+            UIManager.put("TextComponent.arc", 12);
+            UIManager.put("ScrollBar.thumbArc", 999);
+            UIManager.put("ScrollBar.thumbInsets", new Insets(2, 2, 2, 2));
+            
+            // Styles for specific components
+            UIManager.put("TabbedPane.showTabSeparators", true);
+            UIManager.put("TabbedPane.tabHeight", 36);
+            UIManager.put("TabbedPane.selectedBackground", Color.WHITE);
+            UIManager.put("TabbedPane.font", new Font("Segoe UI", Font.BOLD, 13));
+            
+            UIManager.put("Table.rowHeight", 28);
+            UIManager.put("Table.showHorizontalLines", true);
+            UIManager.put("Table.showVerticalLines", false);
+            UIManager.put("Table.intercellSpacing", new Dimension(0, 1));
+            UIManager.put("Table.selectionBackground", new Color(254, 240, 235)); // Soft warm/orange select bg
+            UIManager.put("Table.selectionForeground", new Color(230, 74, 25)); // Orange accent select text
+            
+            UIManager.put("TableHeader.background", new Color(248, 249, 250));
+            UIManager.put("TableHeader.foreground", new Color(74, 85, 104));
+            UIManager.put("TableHeader.font", new Font("Segoe UI", Font.BOLD, 12));
         } catch (Exception e) {
             e.printStackTrace();
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         // Jalankan inisialisasi database

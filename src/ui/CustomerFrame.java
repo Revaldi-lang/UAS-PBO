@@ -84,7 +84,7 @@ public class CustomerFrame extends JFrame {
 
         // Header Panel
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(0, 123, 255)); // Customer Blue Accent
+        headerPanel.setBackground(new Color(230, 74, 25)); // Customer Coral Orange Accent
         headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
 
         JLabel lblTitle = new JLabel("FOOD ORDER SYSTEM");
@@ -93,18 +93,19 @@ public class CustomerFrame extends JFrame {
 
         JLabel lblWelcome = new JLabel(customer.getWelcomeMessage());
         lblWelcome.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblWelcome.setForeground(new Color(240, 244, 255));
+        lblWelcome.setForeground(new Color(254, 240, 235));
 
-        JPanel titlePanel = new JPanel(new GridLayout(2, 1));
+        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 2));
         titlePanel.setOpaque(false);
         titlePanel.add(lblTitle);
         titlePanel.add(lblWelcome);
 
         JButton btnLogout = new JButton("Logout");
         btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnLogout.setBackground(new Color(220, 53, 69));
-        btnLogout.setForeground(Color.BLACK);
+        btnLogout.setBackground(new Color(220, 53, 69)); // Danger Red
+        btnLogout.setForeground(Color.WHITE);
         btnLogout.setFocusPainted(false);
+        btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnLogout.addActionListener(e -> {
             this.dispose();
             new LoginFrame().setVisible(true);
@@ -140,6 +141,7 @@ public class CustomerFrame extends JFrame {
         filterBar.setOpaque(false);
         filterBar.add(new JLabel("Kategori:"));
         cbFilterCategory = new JComboBox<>(new String[]{"Semua", "FOOD", "BEVERAGE"});
+        cbFilterCategory.setPreferredSize(new Dimension(120, 28));
         filterBar.add(cbFilterCategory);
 
         browsePanel.add(filterBar, BorderLayout.NORTH);
@@ -154,7 +156,7 @@ public class CustomerFrame extends JFrame {
         };
         tblMenu = new JTable(menuModel);
         tblMenu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblMenu.setRowHeight(22);
+        tblMenu.setRowHeight(28);
         JScrollPane scrollPane = new JScrollPane(tblMenu);
         browsePanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -163,12 +165,15 @@ public class CustomerFrame extends JFrame {
         actionPanel.setOpaque(false);
         actionPanel.add(new JLabel("Jumlah Porsi/Gelas:"));
         spinQty = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
+        spinQty.setPreferredSize(new Dimension(65, 28));
         actionPanel.add(spinQty);
 
         btnAddToCart = new JButton("Masukkan ke Keranjang");
         btnAddToCart.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnAddToCart.setBackground(new Color(40, 167, 69));
-        btnAddToCart.setForeground(Color.BLACK);
+        btnAddToCart.setBackground(new Color(40, 167, 69)); // Success Green
+        btnAddToCart.setForeground(Color.WHITE);
+        btnAddToCart.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnAddToCart.setFocusPainted(false);
         actionPanel.add(btnAddToCart);
 
         browsePanel.add(actionPanel, BorderLayout.SOUTH);
@@ -198,14 +203,17 @@ public class CustomerFrame extends JFrame {
         };
         tblCart = new JTable(cartModel);
         tblCart.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblCart.setRowHeight(22);
+        tblCart.setRowHeight(28);
         JScrollPane scrollCart = new JScrollPane(tblCart);
         tableContainer.add(scrollCart, BorderLayout.CENTER);
 
         // Remove item button
         btnRemoveItem = new JButton("Hapus Item Terpilih");
-        btnRemoveItem.setBackground(new Color(220, 53, 69));
-        btnRemoveItem.setForeground(Color.BLACK);
+        btnRemoveItem.setBackground(new Color(220, 53, 69)); // Danger Red
+        btnRemoveItem.setForeground(Color.WHITE);
+        btnRemoveItem.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRemoveItem.setFocusPainted(false);
+        btnRemoveItem.setPreferredSize(new Dimension(0, 32));
         tableContainer.add(btnRemoveItem, BorderLayout.SOUTH);
 
         cartPanel.add(tableContainer, BorderLayout.CENTER);
@@ -214,7 +222,7 @@ public class CustomerFrame extends JFrame {
         JPanel summaryPanel = new JPanel(new GridBagLayout());
         summaryPanel.setBackground(new Color(248, 249, 250));
         summaryPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(222, 226, 230), 1),
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
                 new EmptyBorder(15, 15, 15, 15)
         ));
         summaryPanel.setPreferredSize(new Dimension(350, 0));
@@ -235,7 +243,7 @@ public class CustomerFrame extends JFrame {
         summaryPanel.add(new JLabel("Total Harga:"), gbc);
         lblTotal = new JLabel("Rp0", JLabel.RIGHT);
         lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTotal.setForeground(new Color(0, 123, 255));
+        lblTotal.setForeground(new Color(230, 74, 25)); // Orange Accent
         gbc.gridx = 1;
         summaryPanel.add(lblTotal, gbc);
 
@@ -243,6 +251,7 @@ public class CustomerFrame extends JFrame {
         gbc.gridx = 0; gbc.gridy = 2;
         summaryPanel.add(new JLabel("Metode Bayar:"), gbc);
         cbPaymentMethod = new JComboBox<>(new String[]{"CASH", "E-WALLET"});
+        cbPaymentMethod.setPreferredSize(new Dimension(0, 30));
         gbc.gridx = 1;
         summaryPanel.add(cbPaymentMethod, gbc);
 
@@ -256,6 +265,8 @@ public class CustomerFrame extends JFrame {
         pnlCash.setOpaque(false);
         pnlCash.add(new JLabel("Uang Tunai Diterima (Rp):"));
         txtCashAmount = new JTextField();
+        txtCashAmount.setPreferredSize(new Dimension(0, 30));
+        txtCashAmount.putClientProperty("JTextField.placeholderText", "Masukkan nominal uang");
         pnlCash.add(txtCashAmount);
 
         // E-Wallet payment detail panel
@@ -263,9 +274,12 @@ public class CustomerFrame extends JFrame {
         pnlEWallet.setOpaque(false);
         pnlEWallet.add(new JLabel("Pilih Provider E-Wallet:"));
         cbWalletProvider = new JComboBox<>(new String[]{"GoPay", "OVO", "Dana", "LinkAja"});
+        cbWalletProvider.setPreferredSize(new Dimension(0, 30));
         pnlEWallet.add(cbWalletProvider);
         pnlEWallet.add(new JLabel("No. Handphone:"));
         txtPhoneNumber = new JTextField();
+        txtPhoneNumber.setPreferredSize(new Dimension(0, 30));
+        txtPhoneNumber.putClientProperty("JTextField.placeholderText", "Contoh: 08123456789");
         pnlEWallet.add(txtPhoneNumber);
 
         cardPanel.add(pnlCash, "CASH");
@@ -279,8 +293,10 @@ public class CustomerFrame extends JFrame {
         // Place order button
         btnCheckout = new JButton("Bayar & Proses Pesanan");
         btnCheckout.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnCheckout.setBackground(new Color(40, 167, 69));
-        btnCheckout.setForeground(Color.BLACK);
+        btnCheckout.setBackground(new Color(40, 167, 69)); // Success Green
+        btnCheckout.setForeground(Color.WHITE);
+        btnCheckout.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCheckout.setFocusPainted(false);
         btnCheckout.setPreferredSize(new Dimension(0, 40));
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
         gbc.insets = new Insets(15, 8, 8, 8);
@@ -313,14 +329,16 @@ public class CustomerFrame extends JFrame {
         };
         tblHistory = new JTable(historyModel);
         tblHistory.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblHistory.setRowHeight(22);
+        tblHistory.setRowHeight(28);
         JScrollPane scroll = new JScrollPane(tblHistory);
         historyPanel.add(scroll, BorderLayout.CENTER);
 
         btnRefreshHistory = new JButton("Refresh Riwayat Pesanan");
         btnRefreshHistory.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btnRefreshHistory.setBackground(new Color(0, 123, 255));
-        btnRefreshHistory.setForeground(Color.BLACK);
+        btnRefreshHistory.setBackground(new Color(30, 41, 59)); // Slate
+        btnRefreshHistory.setForeground(Color.WHITE);
+        btnRefreshHistory.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRefreshHistory.setFocusPainted(false);
         
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT));
         bottom.setOpaque(false);

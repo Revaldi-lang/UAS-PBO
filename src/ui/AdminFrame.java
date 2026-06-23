@@ -47,7 +47,7 @@ public class AdminFrame extends JFrame {
 
     private void initUI() {
         setTitle("Admin Dashboard - Food Ordering System");
-        setSize(900, 600);
+        setSize(950, 620);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -57,7 +57,7 @@ public class AdminFrame extends JFrame {
 
         // Header Panel
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(52, 58, 64)); // Dark slate gray
+        headerPanel.setBackground(new Color(30, 41, 59)); // Slate-800
         headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20));
 
         JLabel lblTitle = new JLabel("ADMINISTRATOR CONTROL PANEL");
@@ -65,19 +65,20 @@ public class AdminFrame extends JFrame {
         lblTitle.setForeground(Color.WHITE);
 
         JLabel lblWelcome = new JLabel("Login sebagai: " + admin.getUsername());
-        lblWelcome.setFont(new Font("Segoe UI", Font.ITALIC, 13));
-        lblWelcome.setForeground(new Color(206, 212, 218));
+        lblWelcome.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblWelcome.setForeground(new Color(148, 163, 184)); // Muted Text
 
-        JPanel titlePanel = new JPanel(new GridLayout(2, 1));
+        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 2));
         titlePanel.setOpaque(false);
         titlePanel.add(lblTitle);
         titlePanel.add(lblWelcome);
 
         JButton btnLogout = new JButton("Logout");
         btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnLogout.setBackground(new Color(220, 53, 69)); // Bootstrap Danger Red
-        btnLogout.setForeground(Color.BLACK);
+        btnLogout.setBackground(new Color(220, 53, 69)); // Danger Red
+        btnLogout.setForeground(Color.WHITE);
         btnLogout.setFocusPainted(false);
+        btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnLogout.addActionListener(e -> {
             this.dispose();
             new LoginFrame().setVisible(true);
@@ -117,7 +118,7 @@ public class AdminFrame extends JFrame {
         };
         tblMenu = new JTable(menuModel);
         tblMenu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblMenu.setRowHeight(22);
+        tblMenu.setRowHeight(28);
         JScrollPane scrollPane = new JScrollPane(tblMenu);
         menuPanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -125,10 +126,10 @@ public class AdminFrame extends JFrame {
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(new Color(248, 249, 250));
         formPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(222, 226, 230), 1),
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
                 new EmptyBorder(15, 15, 15, 15)
         ));
-        formPanel.setPreferredSize(new Dimension(320, 0));
+        formPanel.setPreferredSize(new Dimension(330, 0));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -138,7 +139,7 @@ public class AdminFrame extends JFrame {
         // Title
         JLabel lblFormTitle = new JLabel("Form Kelola Menu");
         lblFormTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblFormTitle.setForeground(new Color(33, 37, 41));
+        lblFormTitle.setForeground(new Color(30, 41, 59));
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         formPanel.add(lblFormTitle, gbc);
         gbc.gridwidth = 1;
@@ -148,7 +149,8 @@ public class AdminFrame extends JFrame {
         formPanel.add(new JLabel("ID Menu:"), gbc);
         txtMenuId = new JTextField();
         txtMenuId.setEditable(false);
-        txtMenuId.setBackground(new Color(233, 236, 239));
+        txtMenuId.setBackground(new Color(226, 232, 240));
+        txtMenuId.setPreferredSize(new Dimension(0, 30));
         gbc.gridx = 1;
         formPanel.add(txtMenuId, gbc);
 
@@ -156,6 +158,8 @@ public class AdminFrame extends JFrame {
         gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Nama Menu:"), gbc);
         txtMenuName = new JTextField();
+        txtMenuName.setPreferredSize(new Dimension(0, 30));
+        txtMenuName.putClientProperty("JTextField.placeholderText", "Nama hidangan");
         gbc.gridx = 1;
         formPanel.add(txtMenuName, gbc);
 
@@ -163,6 +167,8 @@ public class AdminFrame extends JFrame {
         gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Harga:"), gbc);
         txtMenuPrice = new JTextField();
+        txtMenuPrice.setPreferredSize(new Dimension(0, 30));
+        txtMenuPrice.putClientProperty("JTextField.placeholderText", "Contoh: 15000");
         gbc.gridx = 1;
         formPanel.add(txtMenuPrice, gbc);
 
@@ -170,6 +176,7 @@ public class AdminFrame extends JFrame {
         gbc.gridx = 0; gbc.gridy = 4;
         formPanel.add(new JLabel("Kategori:"), gbc);
         cbCategory = new JComboBox<>(new String[]{"FOOD", "BEVERAGE"});
+        cbCategory.setPreferredSize(new Dimension(0, 30));
         gbc.gridx = 1;
         formPanel.add(cbCategory, gbc);
 
@@ -177,6 +184,8 @@ public class AdminFrame extends JFrame {
         gbc.gridx = 0; gbc.gridy = 5;
         formPanel.add(new JLabel("Detail Spec:"), gbc);
         txtMenuDetail = new JTextField();
+        txtMenuDetail.setPreferredSize(new Dimension(0, 30));
+        txtMenuDetail.putClientProperty("JTextField.placeholderText", "Contoh: Pedas Sedang");
         txtMenuDetail.setToolTipText("Contoh: Pedas Sedang (Food) atau Large / Ice (Beverage)");
         gbc.gridx = 1;
         formPanel.add(txtMenuDetail, gbc);
@@ -186,20 +195,28 @@ public class AdminFrame extends JFrame {
         btnFormPanel.setOpaque(false);
 
         btnAddMenu = new JButton("Tambah");
-        btnAddMenu.setBackground(new Color(40, 167, 69));
-        btnAddMenu.setForeground(Color.BLACK);
+        btnAddMenu.setBackground(new Color(40, 167, 69)); // Success Green
+        btnAddMenu.setForeground(Color.WHITE);
+        btnAddMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnAddMenu.setFocusPainted(false);
 
         btnEditMenu = new JButton("Simpan Edit");
-        btnEditMenu.setBackground(new Color(255, 193, 7));
-        btnEditMenu.setForeground(Color.BLACK);
+        btnEditMenu.setBackground(new Color(245, 158, 11)); // Amber
+        btnEditMenu.setForeground(Color.WHITE);
+        btnEditMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnEditMenu.setFocusPainted(false);
 
         btnDeleteMenu = new JButton("Hapus");
-        btnDeleteMenu.setBackground(new Color(220, 53, 69));
-        btnDeleteMenu.setForeground(Color.BLACK);
+        btnDeleteMenu.setBackground(new Color(220, 53, 69)); // Danger Red
+        btnDeleteMenu.setForeground(Color.WHITE);
+        btnDeleteMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnDeleteMenu.setFocusPainted(false);
 
         btnClearMenu = new JButton("Clear");
-        btnClearMenu.setBackground(new Color(108, 117, 125));
-        btnClearMenu.setForeground(Color.BLACK);
+        btnClearMenu.setBackground(new Color(108, 117, 125)); // Muted Gray
+        btnClearMenu.setForeground(Color.WHITE);
+        btnClearMenu.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnClearMenu.setFocusPainted(false);
 
         btnFormPanel.add(btnAddMenu);
         btnFormPanel.add(btnEditMenu);
@@ -253,7 +270,7 @@ public class AdminFrame extends JFrame {
         };
         tblOrders = new JTable(orderModel);
         tblOrders.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tblOrders.setRowHeight(22);
+        tblOrders.setRowHeight(28);
         JScrollPane scrollPane = new JScrollPane(tblOrders);
         orderPanel.add(scrollPane, BorderLayout.CENTER);
 
@@ -263,13 +280,17 @@ public class AdminFrame extends JFrame {
 
         btnCompleteOrder = new JButton("Selesaikan Pesanan (COMPLETED)");
         btnCompleteOrder.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnCompleteOrder.setBackground(new Color(40, 167, 69));
-        btnCompleteOrder.setForeground(Color.BLACK);
+        btnCompleteOrder.setBackground(new Color(40, 167, 69)); // Success Green
+        btnCompleteOrder.setForeground(Color.WHITE);
+        btnCompleteOrder.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCompleteOrder.setFocusPainted(false);
 
         btnRefreshOrders = new JButton("Refresh Daftar");
         btnRefreshOrders.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btnRefreshOrders.setBackground(new Color(0, 123, 255));
-        btnRefreshOrders.setForeground(Color.BLACK);
+        btnRefreshOrders.setBackground(new Color(30, 41, 59)); // Slate
+        btnRefreshOrders.setForeground(Color.WHITE);
+        btnRefreshOrders.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnRefreshOrders.setFocusPainted(false);
 
         ctrlPanel.add(btnCompleteOrder);
         ctrlPanel.add(btnRefreshOrders);
