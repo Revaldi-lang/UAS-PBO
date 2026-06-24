@@ -82,10 +82,10 @@ public class AdminFrame extends JFrame {
         JPanel titleGroup = new JPanel(new GridLayout(2, 1, 0, 2));
         titleGroup.setOpaque(false);
         JLabel lblTitle = new JLabel("Admin Dashboard");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 16));
         lblTitle.setForeground(TEXT_DARK);
         JLabel lblUser = new JLabel("Login sebagai " + admin.getUsername());
-        lblUser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblUser.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 12));
         lblUser.setForeground(TEXT_MUTED);
         titleGroup.add(lblTitle);
         titleGroup.add(lblUser);
@@ -143,7 +143,7 @@ public class AdminFrame extends JFrame {
 
         g.gridy = 0; g.insets = new Insets(0, 0, 16, 0);
         JLabel formTitle = new JLabel("Kelola Menu");
-        formTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        formTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 14));
         formTitle.setForeground(TEXT_DARK);
         formCard.add(formTitle, g);
 
@@ -295,19 +295,19 @@ public class AdminFrame extends JFrame {
 
     private JLabel fieldLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 12));
         lbl.setForeground(TEXT_MUTED);
         return lbl;
     }
 
     private void styleTable(JTable table) {
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 13));
         table.setRowHeight(36);
         table.setShowHorizontalLines(true);
         table.setShowVerticalLines(false);
         table.setGridColor(new Color(243, 244, 246));
         table.setIntercellSpacing(new Dimension(0, 1));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        table.getTableHeader().setFont(new Font("Plus Jakarta Sans", Font.BOLD, 11));
         table.getTableHeader().setBackground(new Color(249, 250, 251));
         table.getTableHeader().setForeground(TEXT_MUTED);
         table.getTableHeader().setPreferredSize(new Dimension(0, 38));
@@ -315,7 +315,7 @@ public class AdminFrame extends JFrame {
 
     private JButton flatButton(String text, Color bg, Color hover) {
         JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 12));
         btn.setBackground(bg);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -486,7 +486,7 @@ public class AdminFrame extends JFrame {
         g.anchor = GridBagConstraints.WEST;
 
         JLabel dlgTitle = new JLabel("Detail Pesanan #" + orderId);
-        dlgTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        dlgTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 16));
         dlgTitle.setForeground(TEXT_DARK);
         g.gridx = 0; g.gridy = 0; g.gridwidth = 2; g.insets = new Insets(0, 0, 12, 0);
         infoPanel.add(dlgTitle, g);
@@ -531,7 +531,7 @@ public class AdminFrame extends JFrame {
         g.gridx = 0; g.gridy = 6;
         infoPanel.add(infoLabel("Total Bayar Akhir"), g);
         JLabel lblTotalVal = infoValue("Rp " + String.format("%,.0f", selectedOrder.getTotalPrice()));
-        lblTotalVal.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblTotalVal.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 13));
         lblTotalVal.setForeground(ACCENT);
         g.gridx = 1;
         infoPanel.add(lblTotalVal, g);
@@ -591,14 +591,14 @@ public class AdminFrame extends JFrame {
 
     private JLabel infoLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 12));
         lbl.setForeground(TEXT_MUTED);
         return lbl;
     }
 
     private JLabel infoValue(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lbl.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 13));
         lbl.setForeground(TEXT_DARK);
         return lbl;
     }
@@ -674,7 +674,7 @@ public class AdminFrame extends JFrame {
         pnlContent.setBorder(new EmptyBorder(16, 16, 16, 16));
 
         JLabel lblTitle = new JLabel("Pratinjau Struk Belanja", JLabel.CENTER);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 14));
         lblTitle.setForeground(TEXT_DARK);
         pnlContent.add(lblTitle, BorderLayout.NORTH);
 
@@ -719,10 +719,10 @@ public class AdminFrame extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1.0; c.gridx = 0;
         c.gridy = 0;
         JLabel lblRevTitle = fieldLabel("TOTAL OMSET");
-        lblRevTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblRevTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 11));
         cardRevenue.add(lblRevTitle, c);
         lblTotalRevenue = new JLabel("Rp 0");
-        lblTotalRevenue.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTotalRevenue.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 22));
         lblTotalRevenue.setForeground(SUCCESS);
         c.gridy = 1; c.insets = new Insets(6, 0, 0, 0);
         cardRevenue.add(lblTotalRevenue, c);
@@ -731,10 +731,10 @@ public class AdminFrame extends JFrame {
         JPanel cardOrders = wrapCard(new GridBagLayout());
         c.gridy = 0; c.insets = new Insets(0, 0, 0, 0);
         JLabel lblOrdTitle = fieldLabel("TOTAL TRANSAKSI");
-        lblOrdTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblOrdTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 11));
         cardOrders.add(lblOrdTitle, c);
         lblCompletedOrders = new JLabel("0");
-        lblCompletedOrders.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblCompletedOrders.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 22));
         lblCompletedOrders.setForeground(ACCENT);
         c.gridy = 1; c.insets = new Insets(6, 0, 0, 0);
         cardOrders.add(lblCompletedOrders, c);
@@ -743,10 +743,10 @@ public class AdminFrame extends JFrame {
         JPanel cardDiscounts = wrapCard(new GridBagLayout());
         c.gridy = 0; c.insets = new Insets(0, 0, 0, 0);
         JLabel lblDiscTitle = fieldLabel("TOTAL DISKON DIBERIKAN");
-        lblDiscTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblDiscTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 11));
         cardDiscounts.add(lblDiscTitle, c);
         lblTotalDiscounts = new JLabel("Rp 0");
-        lblTotalDiscounts.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTotalDiscounts.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 22));
         lblTotalDiscounts.setForeground(WARNING);
         c.gridy = 1; c.insets = new Insets(6, 0, 0, 0);
         cardDiscounts.add(lblTotalDiscounts, c);
@@ -759,7 +759,7 @@ public class AdminFrame extends JFrame {
         // Center: Best Sellers Table
         JPanel tableCard = wrapCard(new BorderLayout(0, 10));
         JLabel lblBestTitle = new JLabel("Menu Paling Laris (Top 5)");
-        lblBestTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblBestTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 14));
         lblBestTitle.setForeground(TEXT_DARK);
         tableCard.add(lblBestTitle, BorderLayout.NORTH);
  

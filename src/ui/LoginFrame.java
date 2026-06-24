@@ -56,12 +56,12 @@ public class LoginFrame extends JFrame {
         // Title
         JLabel lblTitle = new JLabel("Warung Om Budi");
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTitle.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 20));
         lblTitle.setForeground(TEXT_DARK);
 
         JLabel lblSub = new JLabel("Masuk ke akun Anda untuk melanjutkan");
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 12));
         lblSub.setForeground(TEXT_MUTED);
         lblSub.setBorder(new EmptyBorder(6, 0, 28, 0));
 
@@ -79,7 +79,7 @@ public class LoginFrame extends JFrame {
         form.add(fieldLabel("Username"), gbc);
 
         txtUsername = new JTextField();
-        txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtUsername.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 13));
         txtUsername.setPreferredSize(new Dimension(0, 40));
         txtUsername.putClientProperty("JTextField.placeholderText", "Masukkan username");
         gbc.gridy = 1; gbc.insets = new Insets(0, 0, 18, 0);
@@ -89,7 +89,7 @@ public class LoginFrame extends JFrame {
         form.add(fieldLabel("Password"), gbc);
 
         txtPassword = new JPasswordField();
-        txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        txtPassword.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 13));
         txtPassword.setPreferredSize(new Dimension(0, 40));
         txtPassword.putClientProperty("JTextField.placeholderText", "Masukkan password");
         gbc.gridy = 3; gbc.insets = new Insets(0, 0, 28, 0);
@@ -99,7 +99,7 @@ public class LoginFrame extends JFrame {
 
         // Login button
         btnLogin = new JButton("Masuk");
-        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnLogin.setFont(new Font("Plus Jakarta Sans", Font.BOLD, 13));
         btnLogin.setBackground(ACCENT);
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFocusPainted(false);
@@ -114,7 +114,7 @@ public class LoginFrame extends JFrame {
 
         // Register button
         btnRegister = new JButton("Buat Akun Baru");
-        btnRegister.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnRegister.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 13));
         btnRegister.setBackground(CARD_BG);
         btnRegister.setForeground(ACCENT);
         btnRegister.setFocusPainted(false);
@@ -144,7 +144,7 @@ public class LoginFrame extends JFrame {
 
     private JLabel fieldLabel(String text) {
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setFont(new Font("Plus Jakarta Sans", Font.PLAIN, 12));
         lbl.setForeground(TEXT_DARK);
         return lbl;
     }
@@ -210,7 +210,7 @@ public class LoginFrame extends JFrame {
             UIManager.put("TabbedPane.showTabSeparators", true);
             UIManager.put("TabbedPane.tabHeight", 38);
             UIManager.put("TabbedPane.selectedBackground", Color.WHITE);
-            UIManager.put("TabbedPane.font", new Font("Segoe UI", Font.PLAIN, 13));
+            UIManager.put("TabbedPane.font", new Font("Plus Jakarta Sans", Font.PLAIN, 13));
             UIManager.put("TabbedPane.underlineColor", new Color(79, 70, 229));
             UIManager.put("TabbedPane.selectedForeground", new Color(79, 70, 229));
 
@@ -223,7 +223,7 @@ public class LoginFrame extends JFrame {
 
             UIManager.put("TableHeader.background", new Color(249, 250, 251));
             UIManager.put("TableHeader.foreground", new Color(107, 114, 128));
-            UIManager.put("TableHeader.font", new Font("Segoe UI", Font.BOLD, 11));
+            UIManager.put("TableHeader.font", new Font("Plus Jakarta Sans", Font.BOLD, 11));
             UIManager.put("TableHeader.separatorColor", new Color(229, 231, 235));
             UIManager.put("TableHeader.bottomSeparatorColor", new Color(229, 231, 235));
 
