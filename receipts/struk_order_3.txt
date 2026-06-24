@@ -1,0 +1,20 @@
+==========================================
+            WARUNG OM BUDI                 
+==========================================
+ID Pesanan   : #3
+Pelanggan    : danish
+Waktu Order  : 2026-06-24 06:16:58
+Metode Bayar : CASH
+Status       : COMPLETED
+------------------------------------------
+Menu Item                Qty      Subtotal
+------------------------------------------
+Nasi Goreng Spesial       10  Rp   250,000
+Es Teh Manis               1  Rp     6,000
+Kopi Susu Gula Aren        1  Rp    15,000
+------------------------------------------
+Total Bayar:                Rp   261,000
+==========================================
+          Terima Kasih Atas Kunjungan
+                 Anda!
+==========================================

@@ -91,4 +91,21 @@ public class MenuRepository {
             return false;
         }
     }
+
+    public boolean isMenuNameExists(String name, int excludeId) {
+        String query = "SELECT COUNT(*) FROM menu_items WHERE LOWER(name) = LOWER(?) AND is_deleted = 0 AND id != ?;";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, name);
+            pstmt.setInt(2, excludeId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking menu name existence: " + e.getMessage());
+        }
+        return false;
+    }
 }

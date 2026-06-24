@@ -351,6 +351,12 @@ public class AdminFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Semua form harus diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
+
+        if (menuRepository.isMenuNameExists(name, 0)) {
+            JOptionPane.showMessageDialog(this, "Menu dengan nama yang sama sudah ada!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         try {
             double price = Double.parseDouble(priceStr);
             MenuItem item = "FOOD".equals(category) ? new Food(0, name, price, detail) : new Beverage(0, name, price, detail);
@@ -381,6 +387,12 @@ public class AdminFrame extends JFrame {
         }
         try {
             int id = Integer.parseInt(idStr);
+
+            if (menuRepository.isMenuNameExists(name, id)) {
+                JOptionPane.showMessageDialog(this, "Menu dengan nama yang sama sudah ada!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             double price = Double.parseDouble(priceStr);
             MenuItem item = "FOOD".equals(category) ? new Food(id, name, price, detail) : new Beverage(id, name, price, detail);
             if (menuRepository.updateMenuItem(item)) {
